@@ -5,3 +5,11 @@ __pycache__
 .env
 .env.example
 .DS_Store
+data/cleaned/2407.21783v2_qa_pairs_cleaned.json
+data/generated/2407.21783v2_
+data/generated/2407.21783v2_cot_examples.json
+data/generated/2407.21783v2_qa_pairs.json
+data/generated/test_write.json
+data/output/2407.21783v2.txt
+data/pdf/2407.21783v2.pdf
+synthetic_data_kit/.config.yaml.swp
