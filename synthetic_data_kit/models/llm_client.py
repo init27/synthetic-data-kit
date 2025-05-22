@@ -64,15 +64,15 @@ class LLMClient:
             self.api_base = api_base or api_endpoint_config.get('api_base')
             
             # Check for environment variables
-            llama_api_key = os.environ.get('LLAMA_API_KEY')
-            print(f"LLAMA_API_KEY from environment: {'Found' if llama_api_key else 'Not found'}")
+            api_endpoint_key = os.environ.get('API_ENDPOINT_KEY')
+            print(f"API_ENDPOINT_KEY from environment: {'Found' if api_endpoint_key else 'Not found'}")
             
             # Set API key with priority: CLI arg > env var > config
-            self.api_key = api_key or llama_api_key or api_endpoint_config.get('api_key')
-            print(f"Using API key: {'From CLI' if api_key else 'From env var' if llama_api_key else 'From config' if api_endpoint_config.get('api_key') else 'None'}")
+            self.api_key = api_key or api_endpoint_key or api_endpoint_config.get('api_key')
+            print(f"Using API key: {'From CLI' if api_key else 'From env var' if api_endpoint_key else 'From config' if api_endpoint_config.get('api_key') else 'None'}")
             
             if not self.api_key and not self.api_base:  # Only require API key for official API
-                raise ValueError("API key is required for API endpoint provider. Set in config or LLAMA_API_KEY env var.")
+                raise ValueError("API key is required for API endpoint provider. Set in config or API_ENDPOINT_KEY env var.")
             
             self.model = model_name or api_endpoint_config.get('model')
             self.max_retries = max_retries or api_endpoint_config.get('max_retries')
