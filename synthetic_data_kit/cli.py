@@ -55,10 +55,10 @@ def system_check(
     """
     Check if the selected LLM provider's server is running.
     """
-    # Check for LLAMA_API_KEY directly from environment
+    # Check for API_ENDPOINT_KEY directly from environment
     console.print("Environment variable check:", style="bold blue")
-    llama_key = os.environ.get('LLAMA_API_KEY')
-    console.print(f"LLAMA_API_KEY: {'Present' if llama_key else 'Not found'}")
+    llama_key = os.environ.get('API_ENDPOINT_KEY')
+    console.print(f"API_ENDPOINT_KEY: {'Present' if llama_key else 'Not found'}")
     # Debugging sanity test:
     # if llama_key:
         # console.print(f"  Value starts with: {llama_key[:10]}...")
@@ -78,13 +78,13 @@ def system_check(
         api_base = api_base or api_endpoint_config.get("api_base")
         
         # Check for environment variables
-        llama_api_key = os.environ.get('LLAMA_API_KEY')
-        console.print(f"LLAMA_API_KEY environment variable: {'Found' if llama_api_key else 'Not found'}")
+        api_endpoint_key = os.environ.get('API_ENDPOINT_KEY')
+        console.print(f"API_ENDPOINT_KEY environment variable: {'Found' if api_endpoint_key else 'Not found'}")
         
         # Set API key with priority: env var > config
-        api_key = llama_api_key or api_endpoint_config.get("api_key")
+        api_key = api_endpoint_key or api_endpoint_config.get("api_key")
         if api_key:
-            console.print(f"API key source: {'Environment variable' if llama_api_key else 'Config file'}")
+            console.print(f"API key source: {'Environment variable' if api_endpoint_key else 'Config file'}")
         
         model = api_endpoint_config.get("model")
         
@@ -121,7 +121,7 @@ def system_check(
                     if api_base:
                         console.print(f"Using custom API base: {api_base}", style="yellow")
                     if not api_key and not api_base:
-                        console.print("API key is required. Set in config.yaml or as LLAMA_API_KEY env var", style="yellow")
+                        console.print("API key is required. Set in config.yaml or as API_ENDPOINT_KEY env var", style="yellow")
                     return 1
             except Exception as e:
                 console.print(f"L Error: {str(e)}", style="red")
