@@ -156,28 +156,91 @@ def system_check(
 
 @app.command()
 def ingest(
-    input: str = typer.Argument(..., help="File or URL to parse"),
+    input: str = typer.Argument(..., help="File, URL, or directory to parse"),
     output_dir: Optional[Path] = typer.Option(
         None, "--output-dir", "-o", help="Where to save the output"
     ),
     name: Optional[str] = typer.Option(
-        None, "--name", "-n", help="Custom output filename"
+        None, "--name", "-n", help="Custom output filename or prefix"
+    ),
+    parallel: bool = typer.Option(
+        True, "--parallel/--sequential", help="Process files in parallel (default) or sequentially"
+    ),
+    max_workers: Optional[int] = typer.Option(
+        None, "--max-workers", help="Maximum number of parallel workers (default: CPU count)"
     ),
 ):
     """
-    Parse documents (PDF, HTML, YouTube, DOCX, PPT, TXT) into clean text.
+    Parse documents into clean text.
+    
+    Accepts a single file, URL, or directory path. When given a directory, will process
+    all supported files in that directory regardless of type - perfect for mixed content folders.
+    
+    Examples:
+    - Single file: synthetic-data-kit ingest data/pdf/paper.pdf
+    - Directory with mixed content: synthetic-data-kit ingest data/
+    - URL: synthetic-data-kit ingest https://example.com
+    - YouTube: synthetic-data-kit ingest https://www.youtube.com/watch?v=dQw4w9WgXcQ
+    
+    Supported file types:
+    - PDF (.pdf)
+    - HTML (.html, .htm)
+    - DOCX (.docx)
+    - PowerPoint (.pptx)
+    - Text (.txt)
+    - YouTube URLs
+    - Web URLs
+    
+    All files will be converted to plain text (.txt) format for further processing.
     """
-    from synthetic_data_kit.core.ingest import process_file
+    from synthetic_data_kit.core.ingest import process_file, process_directory
     
     # Get output directory from args, then config, then default
     if output_dir is None:
         output_dir = get_path_config(ctx.config, "output", "parsed")
     
     try:
-        with console.status(f"Processing {input}..."):
-            output_path = process_file(input, output_dir, name, ctx.config)
-        console.print(f" Text successfully extracted to [bold]{output_path}[/bold]", style="green")
-        return 0
+        # Check if input is a directory
+        if os.path.isdir(input):
+            from synthetic_data_kit.core.ingest import SUPPORTED_EXTENSIONS
+            console.print(f"Processing all supported files in directory: {input}")
+            console.print(f"Supported file types: {', '.join(ext.upper().lstrip('.') for ext in SUPPORTED_EXTENSIONS)}", style="blue")
+            
+            with console.status(f"Processing files in {input}..."):
+                output_paths = process_directory(
+                    input_dir=input,
+                    output_dir=output_dir,
+                    name_prefix=name,
+                    config=ctx.config,
+                    parallel=parallel,
+                    max_workers=max_workers
+                )
+                
+            if output_paths:
+                console.print(f" Successfully processed {len(output_paths)} files", style="green")
+                if len(output_paths) <= 10:
+                    # Show all files if 10 or fewer
+                    for path in output_paths:
+                        console.print(f" - [bold]{os.path.basename(path)}[/bold]", style="green")
+                else:
+                    # Show first 5 and last 5 if more than 10
+                    for path in output_paths[:5]:
+                        console.print(f" - [bold]{os.path.basename(path)}[/bold]", style="green")
+                    console.print(f" - ... and {len(output_paths) - 10} more files ...", style="green")
+                    for path in output_paths[-5:]:
+                        console.print(f" - [bold]{os.path.basename(path)}[/bold]", style="green")
+                        
+                console.print(f"\nAll extracted text files are saved to: [bold]{output_dir}[/bold]", style="green")
+            else:
+                console.print(" No files were successfully processed", style="yellow")
+            return 0
+        
+        # Single file or URL
+        else:
+            with console.status(f"Processing {input}..."):
+                output_path = process_file(input, output_dir, name, ctx.config)
+            console.print(f" Text successfully extracted to [bold]{output_path}[/bold]", style="green")
+            return 0
     except Exception as e:
         console.print(f"L Error: {e}", style="red")
         return 1
@@ -185,7 +248,7 @@ def ingest(
 
 @app.command()
 def create(
-    input: str = typer.Argument(..., help="File to process"),
+    input: str = typer.Argument(..., help="File or directory to process"),
     content_type: str = typer.Option(
         "qa", "--type", help="Type of content to generate [qa|summary|cot|cot-enhance]"
     ),
@@ -193,32 +256,44 @@ def create(
         None, "--output-dir", "-o", help="Where to save the output"
     ),
     api_base: Optional[str] = typer.Option(
-        None, "--api-base", help="VLLM API base URL"
+        None, "--api-base", help="API base URL"
     ),
     model: Optional[str] = typer.Option(
         None, "--model", "-m", help="Model to use"
     ),
     num_pairs: Optional[int] = typer.Option(
-        None, "--num-pairs", "-n", help="Target number of QA pairs to generate"
+        None, "--num-pairs", "-n", help="Target number of QA pairs or CoT examples to generate"
     ),
     verbose: bool = typer.Option(
         False, "--verbose", "-v", help="Show detailed output"
+    ),
+    parallel: bool = typer.Option(
+        True, "--parallel/--sequential", help="Process files in parallel (default) or sequentially"
+    ),
+    max_workers: Optional[int] = typer.Option(
+        None, "--max-workers", help="Maximum number of parallel workers (default: CPU count)"
     ),
 ):
     """
     Generate content from text using local LLM inference.
     
+    Accepts a single file or directory path.
+    Examples:
+    - Single file: synthetic-data-kit create data/output/paper.txt
+    - Directory: synthetic-data-kit create data/output/
+    
     Content types:
-    - qa: Generate question-answer pairs from text
+    - qa: Generate question-answer pairs from text (use --num-pairs to specify how many)
     - summary: Generate a summary of the text
-    - cot: Generate Chain of Thought reasoning examples from text
+    - cot: Generate Chain of Thought reasoning examples from text (use --num-pairs to specify how many)
     - cot-enhance: Enhance existing tool-use conversations with Chain of Thought reasoning
+      (use --num-pairs to limit the number of conversations to enhance, default is to enhance all)
       (for cot-enhance, the input must be a JSON file with either:
        - A single conversation in 'conversations' field
        - An array of conversation objects, each with a 'conversations' field
        - A direct array of conversation messages)
     """
-    from synthetic_data_kit.core.create import process_file
+    from synthetic_data_kit.core.create import process_file, process_directory
     
     # Check the LLM provider from config
     provider = get_llm_provider(ctx.config)
@@ -254,21 +329,45 @@ def create(
         output_dir = get_path_config(ctx.config, "output", "generated")
     
     try:
-        with console.status(f"Generating {content_type} content from {input}..."):
-            output_path = process_file(
-                input,
-                output_dir,
-                ctx.config_path,
-                api_base,
-                model,
-                content_type,
-                num_pairs,
-                verbose,
-                provider=provider  # Pass the provider parameter
-            )
-        if output_path:
-            console.print(f" Content saved to [bold]{output_path}[/bold]", style="green")
-        return 0
+        # Check if input is a directory
+        if os.path.isdir(input):
+            console.print(f"Processing all text files in directory: {input}")
+            with console.status(f"Generating {content_type} content from files in {input}..."):
+                output_paths = process_directory(
+                    input_dir=input,
+                    output_dir=output_dir,
+                    config_path=ctx.config_path,
+                    api_base=api_base,
+                    model=model,
+                    content_type=content_type,
+                    num_pairs=num_pairs,
+                    verbose=verbose,
+                    provider=provider,
+                    parallel=parallel,
+                    max_workers=max_workers
+                )
+            console.print(f" Successfully generated content for {len(output_paths)} files", style="green")
+            for path in output_paths:
+                console.print(f" - [bold]{path}[/bold]", style="green")
+            return 0
+        
+        # Single file
+        else:
+            with console.status(f"Generating {content_type} content from {input}..."):
+                output_path = process_file(
+                    input,
+                    output_dir,
+                    ctx.config_path,
+                    api_base,
+                    model,
+                    content_type,
+                    num_pairs,
+                    verbose,
+                    provider=provider
+                )
+            if output_path:
+                console.print(f" Content saved to [bold]{output_path}[/bold]", style="green")
+            return 0
     except Exception as e:
         console.print(f"L Error: {e}", style="red")
         return 1
@@ -276,15 +375,15 @@ def create(
 
 @app.command("curate")
 def curate(
-    input: str = typer.Argument(..., help="Input file to clean"),
+    input: str = typer.Argument(..., help="Input file or directory to clean"),
     output: Optional[Path] = typer.Option(
-        None, "--output", "-o", help="Output file path"
+        None, "--output", "-o", help="Output directory or file path"
     ),
     threshold: Optional[float] = typer.Option(
         None, "--threshold", "-t", help="Quality threshold (1-10)"
     ),
     api_base: Optional[str] = typer.Option(
-        None, "--api-base", help="VLLM API base URL"
+        None, "--api-base", help="API base URL"
     ),
     model: Optional[str] = typer.Option(
         None, "--model", "-m", help="Model to use"
@@ -292,11 +391,22 @@ def curate(
     verbose: bool = typer.Option(
         False, "--verbose", "-v", help="Show detailed output"
     ),
+    parallel: bool = typer.Option(
+        True, "--parallel/--sequential", help="Process files in parallel (default) or sequentially"
+    ),
+    max_workers: Optional[int] = typer.Option(
+        None, "--max-workers", help="Maximum number of parallel workers (default: CPU count)"
+    ),
 ):
     """
     Clean and filter content based on quality.
+    
+    Accepts a single file or directory path.
+    Examples:
+    - Single file: synthetic-data-kit curate data/generated/report_qa_pairs.json
+    - Directory: synthetic-data-kit curate data/generated/
     """
-    from synthetic_data_kit.core.curate import curate_qa_pairs
+    from synthetic_data_kit.core.curate import curate_qa_pairs, process_directory
     
     # Check the LLM provider from config
     provider = get_llm_provider(ctx.config)
@@ -327,27 +437,55 @@ def curate(
             console.print(f"vllm serve {model}", style="bold blue")
             return 1
     
-    # Get default output path from config if not provided
-    if not output:
-        cleaned_dir = get_path_config(ctx.config, "output", "cleaned")
-        os.makedirs(cleaned_dir, exist_ok=True)
-        base_name = os.path.splitext(os.path.basename(input))[0]
-        output = os.path.join(cleaned_dir, f"{base_name}_cleaned.json")
-    
     try:
-        with console.status(f"Cleaning content from {input}..."):
-            result_path = curate_qa_pairs(
-                input,
-                output,
-                threshold,
-                api_base,
-                model,
-                ctx.config_path,
-                verbose,
-                provider=provider  # Pass the provider parameter
-            )
-        console.print(f" Cleaned content saved to [bold]{result_path}[/bold]", style="green")
-        return 0
+        # Check if input is a directory
+        if os.path.isdir(input):
+            # Get default output directory if not provided
+            if not output:
+                output = get_path_config(ctx.config, "output", "cleaned")
+                os.makedirs(output, exist_ok=True)
+            
+            console.print(f"Processing all QA pairs files in directory: {input}")
+            with console.status(f"Cleaning content from files in {input}..."):
+                output_paths = process_directory(
+                    input_dir=input,
+                    output_dir=output,
+                    threshold=threshold,
+                    api_base=api_base,
+                    model=model,
+                    config_path=ctx.config_path,
+                    verbose=verbose,
+                    provider=provider,
+                    parallel=parallel,
+                    max_workers=max_workers
+                )
+            console.print(f" Successfully cleaned {len(output_paths)} files", style="green")
+            for path in output_paths:
+                console.print(f" - [bold]{path}[/bold]", style="green")
+            return 0
+        
+        # Single file
+        else:
+            # Get default output path from config if not provided
+            if not output:
+                cleaned_dir = get_path_config(ctx.config, "output", "cleaned")
+                os.makedirs(cleaned_dir, exist_ok=True)
+                base_name = os.path.splitext(os.path.basename(input))[0]
+                output = os.path.join(cleaned_dir, f"{base_name}_cleaned.json")
+            
+            with console.status(f"Cleaning content from {input}..."):
+                result_path = curate_qa_pairs(
+                    input,
+                    output,
+                    threshold,
+                    api_base,
+                    model,
+                    ctx.config_path,
+                    verbose,
+                    provider=provider
+                )
+            console.print(f" Cleaned content saved to [bold]{result_path}[/bold]", style="green")
+            return 0
     except Exception as e:
         console.print(f"L Error: {e}", style="red")
         return 1
@@ -355,7 +493,7 @@ def curate(
 
 @app.command("save-as")
 def save_as(
-    input: str = typer.Argument(..., help="Input file to convert"),
+    input: str = typer.Argument(..., help="Input file or directory to convert"),
     format: Optional[str] = typer.Option(
         None, "--format", "-f", help="Output format [jsonl|alpaca|ft|chatml]"
     ),
@@ -364,11 +502,22 @@ def save_as(
         show_default=True
     ),
     output: Optional[Path] = typer.Option(
-        None, "--output", "-o", help="Output file path"
+        None, "--output", "-o", help="Output directory or file path"
+    ),
+    parallel: bool = typer.Option(
+        True, "--parallel/--sequential", help="Process files in parallel (default) or sequentially"
+    ),
+    max_workers: Optional[int] = typer.Option(
+        None, "--max-workers", help="Maximum number of parallel workers (default: CPU count)"
     ),
 ):
     """
     Convert to different formats for fine-tuning.
+    
+    Accepts a single file or directory path.
+    Examples:
+    - Single file: synthetic-data-kit save-as data/cleaned/report_cleaned.json
+    - Directory: synthetic-data-kit save-as data/cleaned/
     
     The --format option controls the content format (how the data is structured).
     The --storage option controls how the data is stored (JSON file or HF dataset).
@@ -376,44 +525,69 @@ def save_as(
     When using --storage hf, the output will be a directory containing a Hugging Face 
     dataset in Arrow format, which is optimized for machine learning workflows.
     """
-    from synthetic_data_kit.core.save_as import convert_format
+    from synthetic_data_kit.core.save_as import convert_format, process_directory
     
     # Get format from args or config
     if not format:
         format_config = ctx.config.get("format", {})
         format = format_config.get("default", "jsonl")
     
-    # Set default output path if not provided
-    if not output:
-        final_dir = get_path_config(ctx.config, "output", "final")
-        os.makedirs(final_dir, exist_ok=True)
-        base_name = os.path.splitext(os.path.basename(input))[0]
-        
-        if storage == "hf":
-            # For HF datasets, use a directory name
-            output = os.path.join(final_dir, f"{base_name}_{format}_hf")
-        else:
-            # For JSON files, use appropriate extension
-            if format == "jsonl":
-                output = os.path.join(final_dir, f"{base_name}.jsonl")
-            else:
-                output = os.path.join(final_dir, f"{base_name}_{format}.json")
-    
     try:
-        with console.status(f"Converting {input} to {format} format with {storage} storage..."):
-            output_path = convert_format(
-                input,
-                output,
-                format,
-                ctx.config,
-                storage_format=storage
-            )
+        # Check if input is a directory
+        if os.path.isdir(input):
+            # Get default output directory if not provided
+            if not output:
+                output = get_path_config(ctx.config, "output", "final")
+                os.makedirs(output, exist_ok=True)
+            
+            console.print(f"Processing all cleaned files in directory: {input}")
+            with console.status(f"Converting files in {input} to {format} format with {storage} storage..."):
+                output_paths = process_directory(
+                    input_dir=input,
+                    output_dir=output,
+                    format_type=format,
+                    config=ctx.config,
+                    storage_format=storage,
+                    parallel=parallel,
+                    max_workers=max_workers
+                )
+            console.print(f" Successfully converted {len(output_paths)} files", style="green")
+            for path in output_paths:
+                console.print(f" - [bold]{path}[/bold]", style="green")
+            return 0
         
-        if storage == "hf":
-            console.print(f" Converted to {format} format and saved as HF dataset to [bold]{output_path}[/bold]", style="green")
+        # Single file
         else:
-            console.print(f" Converted to {format} format and saved to [bold]{output_path}[/bold]", style="green")
-        return 0
+            # Set default output path if not provided
+            if not output:
+                final_dir = get_path_config(ctx.config, "output", "final")
+                os.makedirs(final_dir, exist_ok=True)
+                base_name = os.path.splitext(os.path.basename(input))[0]
+                
+                if storage == "hf":
+                    # For HF datasets, use a directory name
+                    output = os.path.join(final_dir, f"{base_name}_{format}_hf")
+                else:
+                    # For JSON files, use appropriate extension
+                    if format == "jsonl":
+                        output = os.path.join(final_dir, f"{base_name}.jsonl")
+                    else:
+                        output = os.path.join(final_dir, f"{base_name}_{format}.json")
+            
+            with console.status(f"Converting {input} to {format} format with {storage} storage..."):
+                output_path = convert_format(
+                    input,
+                    output,
+                    format,
+                    ctx.config,
+                    storage_format=storage
+                )
+            
+            if storage == "hf":
+                console.print(f" Converted to {format} format and saved as HF dataset to [bold]{output_path}[/bold]", style="green")
+            else:
+                console.print(f" Converted to {format} format and saved to [bold]{output_path}[/bold]", style="green")
+            return 0
     except Exception as e:
         console.print(f"L Error: {e}", style="red")
         return 1

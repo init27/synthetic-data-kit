@@ -3,15 +3,25 @@
 #
 # This source code is licensed under the terms described in the LICENSE file in
 # the root directory of this source tree.
-# Generate teh content: CoT/QA/Summary Datasets
+# Generate the content: CoT/QA/Summary Datasets
 import os
 import json
+import glob
+import concurrent.futures
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 from synthetic_data_kit.models.llm_client import LLMClient
 from synthetic_data_kit.generators.qa_generator import QAGenerator
+from synthetic_data_kit.generators.vqa_generator import VQAGenerator
 from synthetic_data_kit.utils.config import get_generation_config
+
+def read_json(file_path):
+    # Read the file
+    with open(file_path, 'r', encoding='utf-8') as f:
+        document_text = f.read()
+    return document_text
+
 
 def process_file(
     file_path: str,
@@ -34,6 +44,8 @@ def process_file(
         model: Model to use
         content_type: Type of content to generate (qa, summary, cot)
         num_pairs: Target number of QA pairs to generate
+        verbose: Whether to show detailed output
+        provider: LLM provider to use (vllm or api-endpoint)
         threshold: Quality threshold for filtering (1-10)
     
     Returns:
@@ -42,10 +54,6 @@ def process_file(
     # Create output directory if it doesn't exist
     # The reason for having this directory logic for now is explained in context.py
     os.makedirs(output_dir, exist_ok=True)
-    
-    # Read the file
-    with open(file_path, 'r', encoding='utf-8') as f:
-        document_text = f.read()
     
     # Initialize LLM client
     client = LLMClient(
@@ -64,6 +72,8 @@ def process_file(
     # Generate content based on type
     if content_type == "qa":
         generator = QAGenerator(client, config_path)
+
+        document_text = read_json(file_path)
         
         # Get num_pairs from args or config
         if num_pairs is None:
@@ -103,6 +113,8 @@ def process_file(
     
     elif content_type == "summary":
         generator = QAGenerator(client, config_path)
+
+        document_text = read_json(file_path)
         
         # Generate just the summary
         summary = generator.generate_summary(document_text)
@@ -123,12 +135,14 @@ def process_file(
         
         # Initialize the CoT generator
         generator = COTGenerator(client, config_path)
+
+        document_text = read_json(file_path)
         
         # Get num_examples from args or config
         if num_pairs is None:
             config = client.config
             generation_config = get_generation_config(config)
-            num_pairs = generation_config.get("num_pairs", 5)
+            num_pairs = generation_config.get("num_cot_examples", 5)
         
         # Process document to generate CoT examples
         result = generator.process_document(
@@ -159,6 +173,18 @@ def process_file(
         
         # Initialize the CoT generator
         generator = COTGenerator(client, config_path)
+
+        document_text = read_json(file_path)
+        
+        # Get max_examples from args or config
+        max_examples = None
+        if num_pairs is not None:
+            max_examples = num_pairs  # If user specified a number, use it
+        else:
+            config = client.config
+            generation_config = get_generation_config(config)
+            # Get the config value (will be None by default, meaning enhance all)
+            max_examples = generation_config.get("num_cot_enhance_examples")
         
         # Instead of parsing as text, load the file as JSON with conversations
         try:
@@ -166,7 +192,21 @@ def process_file(
                 data = json.load(f)
             
             # Handle different dataset formats
-            if isinstance(data, dict) and "conversations" in data:
+            # First, check for QA pairs format (the most common input format)
+            if isinstance(data, dict) and "qa_pairs" in data:
+                # QA pairs format from "create qa" command (make this the primary format)
+                from synthetic_data_kit.utils.llm_processing import convert_to_conversation_format
+                
+                qa_pairs = data.get("qa_pairs", [])
+                if verbose:
+                    print(f"Converting {len(qa_pairs)} QA pairs to conversation format")
+                
+                conv_list = convert_to_conversation_format(qa_pairs)
+                # Wrap each conversation in the expected format
+                conversations = [{"conversations": conv} for conv in conv_list]
+                is_single_conversation = False
+            # Then handle other conversation formats for backward compatibility
+            elif isinstance(data, dict) and "conversations" in data:
                 # Single conversation with a conversations array
                 conversations = [data]
                 is_single_conversation = True
@@ -182,6 +222,12 @@ def process_file(
                 # Try to handle as a generic list of conversations
                 conversations = data
                 is_single_conversation = False
+            
+            # Limit the number of conversations if needed
+            if max_examples is not None and len(conversations) > max_examples:
+                if verbose:
+                    print(f"Limiting to {max_examples} conversations (from {len(conversations)} total)")
+                conversations = conversations[:max_examples]
             
             if verbose:
                 print(f"Found {len(conversations)} conversation(s) to enhance")
@@ -201,7 +247,20 @@ def process_file(
                         continue
                     
                     # Enhance this conversation's messages
-                    enhanced_messages = generator.enhance_with_cot(conv_messages, include_simple_steps=verbose)
+                    if verbose:
+                        print(f"Debug - Conv_messages type: {type(conv_messages)}")
+                        print(f"Debug - Conv_messages structure: {conv_messages[:1] if isinstance(conv_messages, list) else 'Not a list'}")
+                    
+                    # Always include simple steps when enhancing QA pairs
+                    enhanced_messages = generator.enhance_with_cot(conv_messages, include_simple_steps=True)
+                    
+                    # Handle nested bug
+                    if enhanced_messages and isinstance(enhanced_messages, list):
+                        # Nested bug
+                        if enhanced_messages and isinstance(enhanced_messages[0], list):
+                            if verbose:
+                                print(f"Debug - Flattening nested array response")
+                            enhanced_messages = enhanced_messages[0]
                     
                     # Create enhanced conversation with same structure
                     enhanced_conv = conversation.copy()
@@ -229,6 +288,162 @@ def process_file(
             
         except json.JSONDecodeError:
             raise ValueError(f"Failed to parse {file_path} as JSON. For cot-enhance, input must be a valid JSON file.")
-    
+    elif content_type == "vqa_add_reasoning":
+        # Initialize the VQA generator
+        generator = VQAGenerator(client, config_path)
+        
+        # Process the dataset
+        output_path = generator.process_dataset(
+            dataset_source=file_path,
+            output_dir=output_dir,
+            num_examples=num_pairs,
+            verbose=verbose
+        )
+        
+        return output_path
+
     else:
         raise ValueError(f"Unknown content type: {content_type}")
+
+def process_directory(
+    input_dir: str,
+    output_dir: str,
+    config_path: Optional[Path] = None,
+    api_base: Optional[str] = None,
+    model: Optional[str] = None,
+    content_type: str = "qa",
+    num_pairs: Optional[int] = None,
+    verbose: bool = False,
+    provider: Optional[str] = None,
+    parallel: bool = False,
+    max_workers: Optional[int] = None
+) -> List[str]:
+    """Process all text files in a directory
+    
+    Args:
+        input_dir: Directory containing text files to process
+        output_dir: Directory to save generated content
+        config_path: Path to configuration file
+        api_base: API base URL
+        model: Model to use
+        content_type: Type of content to generate
+        num_pairs: Target number of pairs to generate
+        verbose: Whether to show detailed output
+        provider: LLM provider to use
+        parallel: Whether to process files in parallel
+        max_workers: Maximum number of parallel workers
+        
+    Returns:
+        List of paths to output files
+    """
+    # Get all files in the directory
+    files = []
+    for filename in os.listdir(input_dir):
+        file_path = os.path.join(input_dir, filename)
+        if os.path.isfile(file_path) and file_path.endswith('.txt'):
+            files.append(file_path)
+    
+    if not files:
+        raise ValueError(f"No text files found in directory: {input_dir}")
+    
+    return process_multiple_files(
+        input_files=files,
+        output_dir=output_dir,
+        config_path=config_path,
+        api_base=api_base,
+        model=model,
+        content_type=content_type,
+        num_pairs=num_pairs,
+        verbose=verbose,
+        provider=provider,
+        parallel=parallel,
+        max_workers=max_workers
+    )
+
+def process_multiple_files(
+    input_files: List[str],
+    output_dir: str,
+    config_path: Optional[Path] = None,
+    api_base: Optional[str] = None,
+    model: Optional[str] = None,
+    content_type: str = "qa",
+    num_pairs: Optional[int] = None,
+    verbose: bool = False,
+    provider: Optional[str] = None,
+    parallel: bool = False,
+    max_workers: Optional[int] = None
+) -> List[str]:
+    """Process multiple text files
+    
+    Args:
+        input_files: List of text files to process
+        output_dir: Directory to save generated content
+        config_path: Path to configuration file
+        api_base: API base URL
+        model: Model to use
+        content_type: Type of content to generate
+        num_pairs: Target number of pairs to generate
+        verbose: Whether to show detailed output
+        provider: LLM provider to use
+        parallel: Whether to process files in parallel
+        max_workers: Maximum number of parallel workers
+        
+    Returns:
+        List of paths to output files
+    """
+    # Create output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Define single file processing function
+    def process_single_file(file_path):
+        try:
+            return process_file(
+                file_path=file_path,
+                output_dir=output_dir,
+                config_path=config_path,
+                api_base=api_base,
+                model=model,
+                content_type=content_type,
+                num_pairs=num_pairs,
+                verbose=verbose,
+                provider=provider
+            )
+        except Exception as e:
+            print(f"Error processing {file_path}: {str(e)}")
+            return None
+    
+    output_files = []
+    
+    # Process files in parallel or sequentially
+    if parallel and len(input_files) > 1:
+        # Default to CPU count if max_workers not specified
+        if max_workers is None:
+            import multiprocessing
+            max_workers = max(1, multiprocessing.cpu_count())
+        
+        # Use ThreadPoolExecutor for I/O-bound operations
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all tasks
+            future_to_file = {executor.submit(process_single_file, file_path): file_path 
+                             for file_path in input_files}
+            
+            # Process results as they complete
+            for future in concurrent.futures.as_completed(future_to_file):
+                file_path = future_to_file[future]
+                try:
+                    result = future.result()
+                    if result:
+                        output_files.append(result)
+                except Exception as e:
+                    print(f"Error processing {file_path}: {str(e)}")
+    else:
+        # Process sequentially
+        for file_path in input_files:
+            try:
+                result = process_single_file(file_path)
+                if result:
+                    output_files.append(result)
+            except Exception as e:
+                print(f"Error processing {file_path}: {str(e)}")
+    
+    return output_files
