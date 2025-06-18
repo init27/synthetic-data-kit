@@ -7,6 +7,8 @@
 
 import os
 import json
+import glob
+import concurrent.futures
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 
@@ -288,3 +290,144 @@ def curate_qa_pairs(
         json.dump(result, f, indent=2)
     
     return output_path
+
+def process_directory(
+    input_dir: str,
+    output_dir: str,
+    threshold: Optional[float] = None,
+    api_base: Optional[str] = None,
+    model: Optional[str] = None,
+    config_path: Optional[Path] = None,
+    verbose: bool = False,
+    provider: Optional[str] = None,
+    parallel: bool = True,
+    max_workers: Optional[int] = None
+) -> List[str]:
+    """Process all QA pairs files in a directory
+    
+    Args:
+        input_dir: Directory containing QA pairs files to process
+        output_dir: Directory to save curated content
+        threshold: Quality threshold (1-10)
+        api_base: API base URL
+        model: Model to use
+        config_path: Path to configuration file
+        verbose: Whether to show detailed output
+        provider: LLM provider to use
+        parallel: Whether to process files in parallel (default) or sequentially
+        max_workers: Maximum number of parallel workers
+        
+    Returns:
+        List of paths to output files
+    """
+    # Get all JSON files in the directory
+    files = []
+    for filename in os.listdir(input_dir):
+        file_path = os.path.join(input_dir, filename)
+        if os.path.isfile(file_path) and file_path.endswith('_qa_pairs.json'):
+            files.append(file_path)
+    
+    if not files:
+        raise ValueError(f"No QA pairs files found in directory: {input_dir}")
+    
+    return process_multiple_files(
+        input_files=files,
+        output_dir=output_dir,
+        threshold=threshold,
+        api_base=api_base,
+        model=model,
+        config_path=config_path,
+        verbose=verbose,
+        provider=provider,
+        parallel=parallel,
+        max_workers=max_workers
+    )
+
+def process_multiple_files(
+    input_files: List[str],
+    output_dir: str,
+    threshold: Optional[float] = None,
+    api_base: Optional[str] = None,
+    model: Optional[str] = None,
+    config_path: Optional[Path] = None,
+    verbose: bool = False,
+    provider: Optional[str] = None,
+    parallel: bool = True,
+    max_workers: Optional[int] = None
+) -> List[str]:
+    """Process multiple QA pairs files
+    
+    Args:
+        input_files: List of QA pairs files to process
+        output_dir: Directory to save curated content
+        threshold: Quality threshold (1-10)
+        api_base: API base URL
+        model: Model to use
+        config_path: Path to configuration file
+        verbose: Whether to show detailed output
+        provider: LLM provider to use
+        parallel: Whether to process files in parallel (default) or sequentially
+        max_workers: Maximum number of parallel workers
+        
+    Returns:
+        List of paths to output files
+    """
+    # Create output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Define single file processing function
+    def process_single_file(file_path):
+        try:
+            # Generate output path based on input filename
+            base_name = os.path.splitext(os.path.basename(file_path))[0]
+            output_path = os.path.join(output_dir, f"{base_name}_cleaned.json")
+            
+            return curate_qa_pairs(
+                input_path=file_path,
+                output_path=output_path,
+                threshold=threshold,
+                api_base=api_base,
+                model=model,
+                config_path=config_path,
+                verbose=verbose,
+                provider=provider
+            )
+        except Exception as e:
+            print(f"Error processing {file_path}: {str(e)}")
+            return None
+    
+    output_files = []
+    
+    # Process files in parallel or sequentially
+    if parallel and len(input_files) > 1:
+        # Default to CPU count if max_workers not specified
+        if max_workers is None:
+            import multiprocessing
+            max_workers = max(1, multiprocessing.cpu_count())
+        
+        # Use ThreadPoolExecutor for I/O-bound operations
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all tasks
+            future_to_file = {executor.submit(process_single_file, file_path): file_path 
+                             for file_path in input_files}
+            
+            # Process results as they complete
+            for future in concurrent.futures.as_completed(future_to_file):
+                file_path = future_to_file[future]
+                try:
+                    result = future.result()
+                    if result:
+                        output_files.append(result)
+                except Exception as e:
+                    print(f"Error processing {file_path}: {str(e)}")
+    else:
+        # Process sequentially
+        for file_path in input_files:
+            try:
+                result = process_single_file(file_path)
+                if result:
+                    output_files.append(result)
+            except Exception as e:
+                print(f"Error processing {file_path}: {str(e)}")
+    
+    return output_files
