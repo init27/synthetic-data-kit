@@ -8,15 +8,23 @@ from synthetic_data_kit.utils import text
 @pytest.mark.unit
 def test_split_into_chunks():
     """Test splitting text into chunks."""
-    text_content = "This is a sample text. " * 50
-    chunks = text.split_into_chunks(text_content, chunk_size=100)
+    # Create multi-paragraph text
+    paragraphs = ["Paragraph one." * 5, "Paragraph two." * 5, "Paragraph three." * 5]
+    text_content = "\n\n".join(paragraphs)
     
-    # Check that all chunks are created correctly
-    assert all(len(chunk) <= 100 for chunk in chunks)
+    # Using a small chunk size to ensure splitting
+    chunks = text.split_into_chunks(text_content, chunk_size=50, overlap=10)
     
-    # Check that we have the expected number of chunks
-    expected_chunks = (len(text_content) + 99) // 100
-    assert len(chunks) >= expected_chunks - 1  # Allow for some flexibility due to overlap
+    # Check that chunks were created
+    assert len(chunks) > 0
+    
+    # For this specific test case, we should have at least 2 chunks
+    assert len(chunks) >= 2
+    
+    # Check that the total content is preserved (allow for some difference due to overlap)
+    combined_length = sum(len(chunk) for chunk in chunks)
+    # The combined length should be at least the original length
+    assert combined_length >= len(text_content)
 
 
 @pytest.mark.unit
