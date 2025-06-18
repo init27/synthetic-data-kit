@@ -1,0 +1,14 @@
+[
+  {
+    "question": "What is synthetic data?",
+    "answer": "Synthetic data is artificially generated data that mimics real-world data. It's useful for training machine learning models when real data is scarce, sensitive, or difficult to obtain."
+  },
+  {
+    "question": "What is chain-of-thought (CoT) reasoning?",
+    "answer": "Chain-of-thought (CoT) reasoning is a technique where language models explain their reasoning process step by step before arriving at a final answer. This approach often leads to more accurate and reliable results."
+  },
+  {
+    "question": "Why is fine-tuning on synthetic data beneficial?",
+    "answer": "Fine-tuning language models on synthetic data can help them develop specialized capabilities without requiring large amounts of real-world data."
+  }
+]

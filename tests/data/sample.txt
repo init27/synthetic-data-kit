@@ -1,0 +1,15 @@
+This is a sample text file used for testing the Synthetic Data Kit.
+
+It contains multiple paragraphs that can be used to test various functionalities
+like text chunking, QA pair generation, and the overall workflow.
+
+Synthetic data is artificially generated data that mimics real-world data.
+It's useful for training machine learning models when real data is scarce,
+sensitive, or difficult to obtain.
+
+Chain-of-thought (CoT) reasoning is a technique where language models explain
+their reasoning process step by step before arriving at a final answer.
+This approach often leads to more accurate and reliable results.
+
+Fine-tuning language models on synthetic data can help them develop
+specialized capabilities without requiring large amounts of real-world data.
