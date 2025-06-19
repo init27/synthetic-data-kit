@@ -1,15 +1,12 @@
-This is a sample text file used for testing the Synthetic Data Kit.
+This is a sample text file for testing the Synthetic Data Kit.
 
-It contains multiple paragraphs that can be used to test various functionalities
-like text chunking, QA pair generation, and the overall workflow.
+Synthetic data refers to artificially generated data that mimics real-world data without containing any actual information from the original dataset. This approach is valuable for many reasons:
 
-Synthetic data is artificially generated data that mimics real-world data.
-It's useful for training machine learning models when real data is scarce,
-sensitive, or difficult to obtain.
+1. Privacy: Synthetic data helps protect sensitive information since it doesn't contain real user data.
+2. Quantity: It allows for creation of large datasets when real data is scarce.
+3. Balance: Synthetic data can be generated to address class imbalance or underrepresented cases.
+4. Edge cases: It can be designed to include rare scenarios that might not appear frequently in real data.
 
-Chain-of-thought (CoT) reasoning is a technique where language models explain
-their reasoning process step by step before arriving at a final answer.
-This approach often leads to more accurate and reliable results.
+Fine-tuning large language models often requires substantial amounts of high-quality training data. Synthetic data generation can address this need by producing question-answer pairs, chain-of-thought reasoning examples, and other formats suitable for model training.
 
-Fine-tuning language models on synthetic data can help them develop
-specialized capabilities without requiring large amounts of real-world data.
+The Synthetic Data Kit provides tools for generating, curating, and formatting synthetic data specifically designed for fine-tuning language models. It supports multiple file formats, different generation strategies, and various output formats compatible with popular fine-tuning frameworks.

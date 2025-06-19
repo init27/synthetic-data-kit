@@ -1,1 +1,1 @@
-"""Test package for synthetic-data-kit."""
+"""Synthetic Data Kit tests package."""

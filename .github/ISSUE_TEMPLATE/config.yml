@@ -1,8 +1,0 @@
-blank_issues_enabled: false
-contact_links:
-  - name: 📚 Documentation
-    url: https://github.com/meta-llama/synthetic-data-kit#readme
-    about: Check out the documentation for answers to common questions
-  - name: 💬 GitHub Discussions
-    url: https://github.com/meta-llama/synthetic-data-kit/discussions
-    about: Ask questions and discuss with other community members

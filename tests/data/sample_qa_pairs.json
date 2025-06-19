@@ -1,14 +1,18 @@
 [
   {
     "question": "What is synthetic data?",
-    "answer": "Synthetic data is artificially generated data that mimics real-world data. It's useful for training machine learning models when real data is scarce, sensitive, or difficult to obtain."
+    "answer": "Synthetic data is artificially generated data that mimics real-world data without containing any actual information from the original dataset."
   },
   {
-    "question": "What is chain-of-thought (CoT) reasoning?",
-    "answer": "Chain-of-thought (CoT) reasoning is a technique where language models explain their reasoning process step by step before arriving at a final answer. This approach often leads to more accurate and reliable results."
+    "question": "What are the benefits of using synthetic data?",
+    "answer": "The benefits of using synthetic data include protecting privacy by not using real user data, creating large datasets when real data is scarce, addressing class imbalance, and including rare edge cases that might not appear frequently in real data."
   },
   {
-    "question": "Why is fine-tuning on synthetic data beneficial?",
-    "answer": "Fine-tuning language models on synthetic data can help them develop specialized capabilities without requiring large amounts of real-world data."
+    "question": "How does synthetic data help with fine-tuning language models?",
+    "answer": "Synthetic data helps with fine-tuning language models by producing question-answer pairs, chain-of-thought reasoning examples, and other formats suitable for model training, addressing the need for substantial amounts of high-quality training data."
+  },
+  {
+    "question": "What does the Synthetic Data Kit provide?",
+    "answer": "The Synthetic Data Kit provides tools for generating, curating, and formatting synthetic data specifically designed for fine-tuning language models, supporting multiple file formats, different generation strategies, and various output formats compatible with popular fine-tuning frameworks."
   }
 ]

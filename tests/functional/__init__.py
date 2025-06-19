@@ -1,1 +1,1 @@
-"""Functional tests package."""
+"""Functional tests for synthetic-data-kit."""
