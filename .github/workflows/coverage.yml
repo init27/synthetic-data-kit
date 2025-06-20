@@ -27,8 +27,7 @@ jobs:
     - name: Run tests with coverage
       env:
         PROJECT_TEST_ENV: "1"
-        OPENAI_API_KEY: "sk-mock-key-for-testing"
-        API_ENDPOINT_KEY: "mock-llama-api-key-for-testing"
+        API_ENDPOINT_KEY: "mock-api-key-for-testing"
       run: |
         pytest --cov=synthetic_data_kit --cov-report=xml tests/
 
