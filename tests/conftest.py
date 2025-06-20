@@ -158,6 +158,7 @@ def test_env():
     os.environ["PROJECT_TEST_ENV"] = "1"
     os.environ["OPENAI_API_KEY"] = "sk-mock-key-for-testing"
     os.environ["API_ENDPOINT_KEY"] = "mock-llama-api-key-for-testing"
+    os.environ["SDK_VERBOSE"] = "false"
     
     yield
     

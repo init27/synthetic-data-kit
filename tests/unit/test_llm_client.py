@@ -11,7 +11,7 @@ from synthetic_data_kit.models.llm_client import LLMClient
 @pytest.mark.unit
 def test_llm_client_initialization(patch_config, test_env):
     """Test LLM client initialization with API endpoint provider."""
-    with patch("openai.OpenAI") as mock_openai:
+    with patch("synthetic_data_kit.models.llm_client.OpenAI") as mock_openai:
         mock_client = MagicMock()
         mock_openai.return_value = mock_client
         
@@ -49,21 +49,30 @@ def test_llm_client_vllm_initialization(patch_config, test_env):
 @pytest.mark.unit
 def test_llm_client_chat_completion(patch_config, test_env):
     """Test LLM client chat completion with API endpoint provider."""
-    with patch("openai.OpenAI") as mock_openai:
-        # Mock OpenAI client response
+    with patch("synthetic_data_kit.models.llm_client.OpenAI") as mock_openai:
+        # Create a proper mock chain for OpenAI client
         mock_client = MagicMock()
-        mock_response = MagicMock()
-        mock_response.model_dump.return_value = {
-            "choices": [
-                {
-                    "message": {
-                        "content": "This is a test response"
-                    }
-                }
-            ]
-        }
-        mock_client.chat.completions.create.return_value = mock_response
+        mock_chat = MagicMock()
+        mock_completions = MagicMock()
+        mock_create = MagicMock()
+        
+        # Setup the nested mock structure
         mock_openai.return_value = mock_client
+        mock_client.chat = mock_chat
+        mock_chat.completions = mock_completions
+        mock_completions.create = mock_create
+        
+        # Setup mock response
+        mock_response = MagicMock()
+        mock_choice = MagicMock()
+        mock_message = MagicMock()
+        
+        mock_message.content = "This is a test response"
+        mock_choice.message = mock_message
+        mock_response.choices = [mock_choice]
+        
+        # Connect the create function to return our mock response
+        mock_create.return_value = mock_response
         
         # Initialize client
         client = LLMClient(provider="api-endpoint")
@@ -79,7 +88,7 @@ def test_llm_client_chat_completion(patch_config, test_env):
         # Check that the response is correct
         assert response == "This is a test response"
         # Check that OpenAI client was called
-        assert mock_client.chat.completions.create.called
+        assert mock_create.called
 
 
 @pytest.mark.unit
