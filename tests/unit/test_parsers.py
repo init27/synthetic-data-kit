@@ -6,9 +6,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from synthetic_data_kit.parsers.txt_parser import TXTParser
 from synthetic_data_kit.parsers.html_parser import HTMLParser
 from synthetic_data_kit.parsers.pdf_parser import PDFParser
+from synthetic_data_kit.parsers.txt_parser import TXTParser
 
 
 @pytest.mark.unit
@@ -67,12 +67,14 @@ def test_html_parser():
         file_path = f.name
 
     output_path = os.path.join(tempfile.gettempdir(), "output.txt")
-    
+
     try:
         # Mock bs4.BeautifulSoup (since it's imported inside the method)
         with patch("bs4.BeautifulSoup") as mock_bs:
             mock_soup = MagicMock()
-            mock_soup.get_text.return_value = "Test Heading\nThis is sample HTML content for testing."
+            mock_soup.get_text.return_value = (
+                "Test Heading\nThis is sample HTML content for testing."
+            )
             mock_bs.return_value = mock_soup
 
             # Initialize parser
@@ -83,10 +85,10 @@ def test_html_parser():
 
             # Check that BeautifulSoup was called
             mock_bs.assert_called_once()
-            
+
             # Check that content extraction method was called
             mock_soup.get_text.assert_called_once()
-            
+
             # Test saving content
             parser.save(content, output_path)
 
@@ -109,31 +111,29 @@ def test_pdf_parser():
     # Mock pdfminer.high_level.extract_text (since it's imported inside the method)
     with patch("pdfminer.high_level.extract_text") as mock_extract:
         mock_extract.return_value = "This is sample PDF content for testing."
-        
+
         # Create a dummy file path
         file_path = "/dummy/path/to/file.pdf"
-        
+
         # Initialize parser
         parser = PDFParser()
-        
+
         # Parse the file
         content = parser.parse(file_path)
-        
+
         # Check that extract_text was called
         mock_extract.assert_called_once_with(file_path)
-        
+
         # Check that content matches our mock return value
         assert content == "This is sample PDF content for testing."
-        
+
         # Test saving content
         with tempfile.TemporaryDirectory() as temp_dir:
             output_path = os.path.join(temp_dir, "output.txt")
             parser.save(content, output_path)
-            
+
             # Check that the file was saved correctly
             with open(output_path, "r") as f:
                 saved_content = f.read()
-            
+
             assert saved_content == content
-
-

@@ -28,10 +28,10 @@ def test_split_into_chunks():
     # Due to chunking logic, some content might be trimmed at chunk boundaries.
     # The real test is that we have multiple chunks and they aren't empty.
     assert all(len(chunk) > 0 for chunk in chunks)
-    
+
     # Test edge case: empty text
     empty_chunks = text.split_into_chunks("", chunk_size=50, overlap=10)
-    
+
     # Empty text should produce an empty list, not a list with an empty string
     assert empty_chunks == []
 
@@ -57,13 +57,13 @@ def test_extract_json_from_text():
     assert "question" in result
     assert result["question"] == "What is synthetic data?"
     assert result["answer"] == "Synthetic data is artificially generated data."
-    
+
     # Test invalid JSON - should raise ValueError
     invalid_json = """
     This is not JSON at all, but the function should try the various extraction methods
     and ultimately raise an error when no valid JSON is found.
     """
-    
+
     with pytest.raises(ValueError):
         text.extract_json_from_text(invalid_json)
 

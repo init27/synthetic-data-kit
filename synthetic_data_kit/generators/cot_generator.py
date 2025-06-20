@@ -98,20 +98,22 @@ class COTGenerator:
                 print(f"Got only {len(examples)} examples, needed {num_examples}")
             # Try again to generate the remaining examples
             additional_examples_needed = num_examples - len(examples)
-            prompt = prompt_template.format(num_examples=additional_examples_needed, text=document_text)
-            
+            prompt = prompt_template.format(
+                num_examples=additional_examples_needed, text=document_text
+            )
+
             messages = [{"role": "system", "content": prompt}]
             response = self.client.chat_completion(
                 messages, temperature=temperature + 0.1, max_tokens=max_tokens
             )
-            
+
             additional_examples = self.parse_json_output(response)
-            
+
             if additional_examples:
                 examples.extend(additional_examples)
                 if len(examples) > num_examples:
                     examples = examples[:num_examples]  # Truncate if we got more than needed
-        
+
         return examples
 
     def enhance_with_cot(
@@ -133,15 +135,16 @@ class COTGenerator:
         # Default batch size is 5 conversations at a time
         batch_size = self.generation_config.get("batch_size", 5)
         all_enhanced_conversations = []
-        
+
         # Process conversations in batches
         for i in range(0, len(conversations), batch_size):
-            batch = conversations[i:i+batch_size]
-            
+            batch = conversations[i : i + batch_size]
+
             # Format the prompt for this batch
             conversation_str = json.dumps(batch, ensure_ascii=False, indent=2)
             prompt = prompt_template.format(
-                conversations=conversation_str, include_simple_steps=str(include_simple_steps).lower()
+                conversations=conversation_str,
+                include_simple_steps=str(include_simple_steps).lower(),
             )
 
             # Generate enhanced conversations
@@ -161,7 +164,9 @@ class COTGenerator:
 
             if enhanced_batch is None:
                 if verbose:
-                    print(f"Failed to parse enhanced conversations for batch {i}, keeping original batch")
+                    print(
+                        f"Failed to parse enhanced conversations for batch {i}, keeping original batch"
+                    )
                 all_enhanced_conversations.extend(batch)
             else:
                 if verbose:

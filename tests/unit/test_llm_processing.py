@@ -1,6 +1,7 @@
 """Unit tests for LLM processing utilities."""
 
 import json
+
 import pytest
 
 from synthetic_data_kit.utils import llm_processing
@@ -27,9 +28,9 @@ def test_parse_qa_pairs():
         }
     ]
     """
-    
+
     result = llm_processing.parse_qa_pairs(json_text)
-    
+
     # Check that all 3 QA pairs were extracted
     assert len(result) == 3
     assert result[0]["question"] == "What is synthetic data?"
@@ -47,9 +48,9 @@ def test_parse_qa_pairs_with_regex():
     {"question": "What is synthetic data?", "answer": "Synthetic data is artificially generated data."}
     {"question": "Why use synthetic data?", "answer": "To protect privacy and create diverse training examples."}
     """
-    
+
     result = llm_processing.parse_qa_pairs(text)
-    
+
     # Check that both QA pairs were extracted using regex
     assert len(result) == 2
     assert result[0]["question"] == "What is synthetic data?"
@@ -62,19 +63,19 @@ def test_convert_to_conversation_format():
     qa_pairs = [
         {
             "question": "What is synthetic data?",
-            "answer": "Synthetic data is artificially generated data."
+            "answer": "Synthetic data is artificially generated data.",
         },
         {
             "question": "Why use synthetic data?",
-            "answer": "To protect privacy and create diverse training examples."
-        }
+            "answer": "To protect privacy and create diverse training examples.",
+        },
     ]
-    
+
     conversations = llm_processing.convert_to_conversation_format(qa_pairs)
-    
+
     # Check that conversations were created correctly
     assert len(conversations) == 2
-    
+
     # Check first conversation
     assert len(conversations[0]) == 3  # system, user, assistant
     assert conversations[0][0]["role"] == "system"
@@ -82,6 +83,6 @@ def test_convert_to_conversation_format():
     assert conversations[0][1]["content"] == "What is synthetic data?"
     assert conversations[0][2]["role"] == "assistant"
     assert conversations[0][2]["content"] == "Synthetic data is artificially generated data."
-    
+
     # Check second conversation
     assert conversations[1][1]["content"] == "Why use synthetic data?"
