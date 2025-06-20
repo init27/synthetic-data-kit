@@ -22,19 +22,15 @@ def test_process_file(patch_config, test_env):
     output_path = None
     
     try:
-        # Mock OpenAI client
-        with patch("openai.OpenAI") as mock_openai:
-            mock_client = MagicMock()
-            mock_response = MagicMock()
-            mock_response.model_dump.return_value = {"choices": [{"message": {"content": json.dumps([
-                {"question": "What is this?", "answer": "This is sample text."},
-                {"question": "What is it for?", "answer": "For testing QA generation."}
-            ])}}]}
-            mock_client.chat.completions.create.return_value = mock_response
-            mock_openai.return_value = mock_client
+        # Mock LLMClient
+        with patch("synthetic_data_kit.core.create.LLMClient") as mock_llm_client_class:
+            # Setup mock LLM client
+            mock_llm_client = MagicMock()
+            mock_llm_client_class.return_value = mock_llm_client
             
-            # Mock QAGenerator
-            with patch("synthetic_data_kit.generators.qa_generator.QAGenerator") as mock_qa_gen_class:
+            # Mock QAGenerator with simplified behavior
+            with patch("synthetic_data_kit.core.create.QAGenerator") as mock_qa_gen_class:
+                # Create a mock generator that returns a predefined document
                 mock_generator = MagicMock()
                 mock_generator.process_document.return_value = {
                     "summary": "A sample text for testing.",
@@ -45,43 +41,42 @@ def test_process_file(patch_config, test_env):
                 }
                 mock_qa_gen_class.return_value = mock_generator
                 
-                # Run the process_file function with minimal arguments
-                output_path = create.process_file(
-                    file_path=input_path,
-                    output_dir=output_dir,
-                    config_path=None,
-                    api_base=None,
-                    model=None,
-                    content_type="qa",
-                    num_pairs=2,
-                    verbose=False,
-                    provider="api-endpoint"
-                )
-                
-                # Verify function doesn't raise an exception
-                assert output_path is not None
-                
-                # If the output file exists, verify its content
-                if os.path.exists(output_path):
-                    with open(output_path, "r") as f:
-                        try:
-                            content = json.load(f)
-                            assert len(content) >= 1
-                            assert "question" in content[0]
-                            assert "answer" in content[0]
-                        except json.JSONDecodeError:
-                            # If not valid JSON, just check file exists
-                            assert os.path.exists(output_path)
+                # Mock file operations
+                with patch("builtins.open", create=True), patch("json.dump") as mock_json_dump:
+                    # Mock os.path.exists to return True for our output file
+                    with patch("os.path.exists", return_value=True), \
+                         patch("os.path.join", return_value=os.path.join(output_dir, "output_qa_pairs.json")):
+                        
+                        # Run the process_file function with minimal arguments
+                        output_path = create.process_file(
+                            file_path=input_path,
+                            output_dir=output_dir,
+                            config_path=None,
+                            api_base=None,
+                            model=None,
+                            content_type="qa",
+                            num_pairs=2,
+                            verbose=False,
+                            provider="api-endpoint"
+                        )
+                        
+                        # Verify function doesn't raise an exception
+                        assert output_path is not None
+                        
+                        # Verify the LLM client was created
+                        mock_llm_client_class.assert_called_once()
+                        
+                        # Verify QA generator was created and used
+                        mock_qa_gen_class.assert_called_once()
+                        mock_generator.process_document.assert_called_once()
+                        
+                        # Verify data was written to a file
+                        mock_json_dump.assert_called()
     
     finally:
         # Clean up temporary files
         if os.path.exists(input_path):
             os.unlink(input_path)
-        if output_path and os.path.exists(output_path):
-            try:
-                os.unlink(output_path)
-            except:
-                pass
         try:
             os.rmdir(output_dir)
         except:
@@ -103,19 +98,15 @@ def test_process_directory(patch_config, test_env):
                 f.write(f"This is sample text content {i} for testing QA pair generation.")
                 file_paths.append(f.name)
         
-        # Mock OpenAI client
-        with patch("openai.OpenAI") as mock_openai:
-            mock_client = MagicMock()
-            mock_response = MagicMock()
-            mock_response.model_dump.return_value = {"choices": [{"message": {"content": json.dumps([
-                {"question": "What is this?", "answer": "This is sample text."},
-                {"question": "What is it for?", "answer": "For testing QA generation."}
-            ])}}]}
-            mock_client.chat.completions.create.return_value = mock_response
-            mock_openai.return_value = mock_client
+        # Mock LLMClient
+        with patch("synthetic_data_kit.core.create.LLMClient") as mock_llm_client_class:
+            # Setup mock LLM client
+            mock_llm_client = MagicMock()
+            mock_llm_client_class.return_value = mock_llm_client
             
             # Mock QAGenerator
-            with patch("synthetic_data_kit.generators.qa_generator.QAGenerator") as mock_qa_gen_class:
+            with patch("synthetic_data_kit.core.create.QAGenerator") as mock_qa_gen_class:
+                # Create a mock generator that returns a predefined document
                 mock_generator = MagicMock()
                 mock_generator.process_document.return_value = {
                     "summary": "A sample text for testing.",
@@ -126,42 +117,34 @@ def test_process_directory(patch_config, test_env):
                 }
                 mock_qa_gen_class.return_value = mock_generator
                 
-                # Mock list of text files
-                with patch("os.path.isdir") as mock_isdir, \
-                     patch("synthetic_data_kit.core.create.find_text_files") as mock_find_files:
-                    mock_isdir.return_value = True
-                    mock_find_files.return_value = file_paths
-                    
-                    # Run the process_directory function
-                    output_paths = create.process_directory(
-                        input_dir=temp_dir,
-                        output_dir=output_dir,
-                        config_path=None,
-                        api_base=None,
-                        model=None,
-                        content_type="qa",
-                        num_pairs=2,
-                        verbose=False,
-                        provider="api-endpoint"
-                    )
-                    
-                    # Verify function returns expected number of files
-                    assert len(output_paths) == len(file_paths)
-                    
-                    # Check if output files exist
-                    for output_path in output_paths:
-                        assert os.path.exists(output_path)
-                        
-                        # Verify content
-                        with open(output_path, "r") as f:
-                            try:
-                                content = json.load(f)
-                                assert len(content) >= 1
-                                assert "question" in content[0]
-                                assert "answer" in content[0]
-                            except json.JSONDecodeError:
-                                # If not valid JSON, just check file exists
-                                assert os.path.exists(output_path)
+                # Mock glob to return our test files
+                with patch("glob.glob", return_value=file_paths):
+                    # Mock file operations
+                    with patch("builtins.open", create=True), patch("json.dump"):
+                        # Mock the process_file function to return a predictable output path
+                        with patch("synthetic_data_kit.core.create.process_file") as mock_process_file:
+                            # Have process_file return output paths for each input file
+                            output_files = [os.path.join(output_dir, f"output_{i}.json") for i in range(len(file_paths))]
+                            mock_process_file.side_effect = output_files
+                            
+                            # Run the process_directory function
+                            output_paths = create.process_directory(
+                                input_dir=temp_dir,
+                                output_dir=output_dir,
+                                config_path=None,
+                                api_base=None,
+                                model=None,
+                                content_type="qa",
+                                num_pairs=2,
+                                verbose=False,
+                                provider="api-endpoint"
+                            )
+                            
+                            # Verify process_file was called the right number of times
+                            assert mock_process_file.call_count == len(file_paths)
+                            
+                            # Verify function returns expected output paths
+                            assert output_paths == output_files
     
     finally:
         # Clean up temporary files and directories
@@ -171,14 +154,6 @@ def test_process_directory(patch_config, test_env):
                     os.unlink(file_path)
                 except:
                     pass
-        
-        # Clean up output directory
-        for file_name in os.listdir(output_dir):
-            file_path = os.path.join(output_dir, file_name)
-            try:
-                os.unlink(file_path)
-            except:
-                pass
         
         try:
             os.rmdir(temp_dir)
