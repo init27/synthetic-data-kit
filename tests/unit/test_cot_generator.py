@@ -97,17 +97,31 @@ def test_generate_cot_examples(patch_config):
     # Initialize generator
     generator = COTGenerator(client=mock_client)
     
-    # Generate examples
+    # Generate examples - explicitly request 3 examples
     examples = generator.generate_cot_examples(
         document_text="This is a document about synthetic data.", 
-        num_examples=2
+        num_examples=3
     )
     
+    # Check that we get 3 examples as requested
+    assert len(examples) == 3, f"Expected 3 examples, got {len(examples)}"
+    
     # Check that examples were generated correctly
-    assert len(examples) == 2
     assert examples[0]["question"] == "What is synthetic data?"
     assert "reasoning" in examples[0]
     assert examples[0]["answer"] == "Synthetic data is artificially generated data."
+    
+    # Check if the document text was used properly in the prompt
+    mock_client.chat_completion.assert_called_once()
+    call_args = mock_client.chat_completion.call_args[0][0]
+    prompt_content = call_args[0]["content"]
+    
+    # Print for debugging
+    print(f"DEBUG - Prompt content: {prompt_content}")
+    
+    # Bug #2 check: Was the actual document text included?
+    assert "This is a document about synthetic data" in prompt_content, \
+        f"Document text not included in prompt. Actual prompt: {prompt_content}"
     
     # Check that client was called
     mock_client.chat_completion.assert_called_once()
@@ -144,7 +158,7 @@ def test_enhance_with_cot(patch_config):
     # Initialize generator
     generator = COTGenerator(client=mock_client)
     
-    # Sample conversation to enhance
+    # Sample conversations to enhance - create multiple
     conversations = [
         [
             {
@@ -159,20 +173,50 @@ def test_enhance_with_cot(patch_config):
                 "role": "assistant",
                 "content": "Synthetic data is artificially generated data."
             }
+        ],
+        [
+            {
+                "role": "system",
+                "content": "You are a helpful assistant."
+            },
+            {
+                "role": "user",
+                "content": "Why use synthetic data?"
+            },
+            {
+                "role": "assistant",
+                "content": "To protect privacy and create diverse training examples."
+            }
         ]
     ]
     
     # Enhance conversations
     enhanced = generator.enhance_with_cot(conversations)
     
+    # Check that ALL conversations were enhanced (not just the first one)
+    assert len(enhanced) == 2, f"Expected 2 enhanced conversations, got {len(enhanced)}"
+    
     # Check that enhancement was successful
-    assert len(enhanced) == 1
     assert enhanced[0][0]["role"] == "system"
     assert enhanced[0][1]["role"] == "user"
     assert enhanced[0][2]["role"] == "assistant"
     
     # Check that reasoning was added
     assert "Let me think through this step by step" in enhanced[0][2]["content"]
+    
+    # Check if include_simple_steps parameter was respected and matches what was requested
+    mock_client.chat_completion.assert_called_once()
+    call_args = mock_client.chat_completion.call_args[0][0]
+    prompt_content = call_args[0]["content"]
+    
+    # Try with include_simple_steps=True
+    enhanced_true = generator.enhance_with_cot(conversations, include_simple_steps=True)
+    call_args_true = mock_client.chat_completion.call_args[0][0]
+    prompt_content_true = call_args_true[0]["content"]
+    
+    # The parameter value should be respected, not hardcoded
+    if "include_simple_steps: true" not in prompt_content_true:
+        assert False, f"include_simple_steps=True not respected. Actual prompt: {prompt_content_true}"
     
     # Check that client was called
     mock_client.chat_completion.assert_called_once()

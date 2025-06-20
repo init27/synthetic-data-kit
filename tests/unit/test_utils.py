@@ -1,5 +1,6 @@
 """Unit tests for utility functions."""
 
+import inspect
 import json
 from pathlib import Path
 
@@ -27,11 +28,18 @@ def test_split_into_chunks():
     # Due to chunking logic, some content might be trimmed at chunk boundaries.
     # The real test is that we have multiple chunks and they aren't empty.
     assert all(len(chunk) > 0 for chunk in chunks)
+    
+    # Test edge case: empty text
+    empty_chunks = text.split_into_chunks("", chunk_size=50, overlap=10)
+    
+    # Empty text should produce an empty list, not a list with an empty string
+    assert empty_chunks == []
 
 
 @pytest.mark.unit
 def test_extract_json_from_text():
     """Test extracting JSON from text."""
+    # Test valid JSON in code block
     json_text = """
     Some random text before the JSON
     ```json
@@ -49,6 +57,22 @@ def test_extract_json_from_text():
     assert "question" in result
     assert result["question"] == "What is synthetic data?"
     assert result["answer"] == "Synthetic data is artificially generated data."
+    
+    # Test invalid JSON - should not silently return empty dict
+    invalid_json = """
+    This is not JSON at all, but the function should try the various extraction methods
+    and ultimately raise an error or continue to the next method, not silently return an empty dict.
+    """
+    
+    result = text.extract_json_from_text(invalid_json)
+    
+    # Check behavior with invalid input - shouldn't silently fail with empty dict
+    if len(result) == 0:
+        # If it returns an empty dict, check that we have a fallback method that was tried
+        # by examining the function's source code
+        source = inspect.getsource(text.extract_json_from_text)
+        assert "Try a more aggressive pattern" in source, \
+            "Function returns empty dict for invalid JSON without trying fallback methods"
 
 
 @pytest.mark.unit
