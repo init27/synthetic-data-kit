@@ -92,6 +92,26 @@ class COTGenerator:
         if verbose:
             print(f"Successfully generated {len(examples)} CoT examples")
 
+        # If we got fewer examples than requested, try to generate more
+        if len(examples) < num_examples:
+            if verbose:
+                print(f"Got only {len(examples)} examples, needed {num_examples}")
+            # Try again to generate the remaining examples
+            additional_examples_needed = num_examples - len(examples)
+            prompt = prompt_template.format(num_examples=additional_examples_needed, text=document_text)
+            
+            messages = [{"role": "system", "content": prompt}]
+            response = self.client.chat_completion(
+                messages, temperature=temperature + 0.1, max_tokens=max_tokens
+            )
+            
+            additional_examples = self.parse_json_output(response)
+            
+            if additional_examples:
+                examples.extend(additional_examples)
+                if len(examples) > num_examples:
+                    examples = examples[:num_examples]  # Truncate if we got more than needed
+        
         return examples
 
     def enhance_with_cot(
@@ -109,36 +129,49 @@ class COTGenerator:
                 f"Debug - First conversation: {json.dumps(conversations[0] if conversations else {}, indent=2)[:100]}..."
             )
 
-        # Format the prompt
-        conversation_str = json.dumps(conversations, ensure_ascii=False, indent=2)
-        prompt = prompt_template.format(
-            conversations=conversation_str, include_simple_steps=str(include_simple_steps).lower()
-        )
+        # Process all conversations, but in batches if needed to avoid context limits
+        # Default batch size is 5 conversations at a time
+        batch_size = self.generation_config.get("batch_size", 5)
+        all_enhanced_conversations = []
+        
+        # Process conversations in batches
+        for i in range(0, len(conversations), batch_size):
+            batch = conversations[i:i+batch_size]
+            
+            # Format the prompt for this batch
+            conversation_str = json.dumps(batch, ensure_ascii=False, indent=2)
+            prompt = prompt_template.format(
+                conversations=conversation_str, include_simple_steps=str(include_simple_steps).lower()
+            )
 
-        # Generate enhanced conversations
-        temperature = self.generation_config.get("temperature", 0.2)
-        max_tokens = self.generation_config.get("max_tokens", 4096)
+            # Generate enhanced conversations
+            temperature = self.generation_config.get("temperature", 0.2)
+            max_tokens = self.generation_config.get("max_tokens", 4096)
 
-        if verbose:
-            print(f"Enhancing {len(conversations)} conversations with CoT...")
-
-        messages = [{"role": "system", "content": prompt}]
-        response = self.client.chat_completion(
-            messages, temperature=temperature, max_tokens=max_tokens
-        )
-
-        # Parse response
-        enhanced_conversations = self.parse_json_output(response)
-
-        if enhanced_conversations is None:
             if verbose:
-                print("Failed to parse enhanced conversations, returning original")
-            return conversations
+                print(f"Enhancing batch of {len(batch)} conversations with CoT...")
+
+            messages = [{"role": "system", "content": prompt}]
+            response = self.client.chat_completion(
+                messages, temperature=temperature, max_tokens=max_tokens
+            )
+
+            # Parse response
+            enhanced_batch = self.parse_json_output(response)
+
+            if enhanced_batch is None:
+                if verbose:
+                    print(f"Failed to parse enhanced conversations for batch {i}, keeping original batch")
+                all_enhanced_conversations.extend(batch)
+            else:
+                if verbose:
+                    print(f"Successfully enhanced batch {i} with CoT")
+                all_enhanced_conversations.extend(enhanced_batch)
 
         if verbose:
-            print(f"Successfully enhanced conversations with CoT")
+            print(f"Successfully enhanced {len(all_enhanced_conversations)} conversations with CoT")
 
-        return enhanced_conversations
+        return all_enhanced_conversations
 
     def process_document(
         self, document_text: str, num_examples: int = None, include_simple_steps: bool = False

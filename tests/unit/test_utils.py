@@ -58,21 +58,14 @@ def test_extract_json_from_text():
     assert result["question"] == "What is synthetic data?"
     assert result["answer"] == "Synthetic data is artificially generated data."
     
-    # Test invalid JSON - should not silently return empty dict
+    # Test invalid JSON - should raise ValueError
     invalid_json = """
     This is not JSON at all, but the function should try the various extraction methods
-    and ultimately raise an error or continue to the next method, not silently return an empty dict.
+    and ultimately raise an error when no valid JSON is found.
     """
     
-    result = text.extract_json_from_text(invalid_json)
-    
-    # Check behavior with invalid input - shouldn't silently fail with empty dict
-    if len(result) == 0:
-        # If it returns an empty dict, check that we have a fallback method that was tried
-        # by examining the function's source code
-        source = inspect.getsource(text.extract_json_from_text)
-        assert "Try a more aggressive pattern" in source, \
-            "Function returns empty dict for invalid JSON without trying fallback methods"
+    with pytest.raises(ValueError):
+        text.extract_json_from_text(invalid_json)
 
 
 @pytest.mark.unit

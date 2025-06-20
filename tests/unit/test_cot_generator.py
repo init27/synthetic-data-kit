@@ -112,8 +112,11 @@ def test_generate_cot_examples(patch_config):
     assert examples[0]["answer"] == "Synthetic data is artificially generated data."
     
     # Check if the document text was used properly in the prompt
-    mock_client.chat_completion.assert_called_once()
-    call_args = mock_client.chat_completion.call_args[0][0]
+    # We may call the API multiple times if needed to get enough examples
+    assert mock_client.chat_completion.call_count > 0, "Chat completion was never called"
+    
+    # Get the first call's arguments
+    call_args = mock_client.chat_completion.call_args_list[0][0][0]
     prompt_content = call_args[0]["content"]
     
     # Print for debugging
@@ -122,9 +125,6 @@ def test_generate_cot_examples(patch_config):
     # Bug #2 check: Was the actual document text included?
     assert "This is a document about synthetic data" in prompt_content, \
         f"Document text not included in prompt. Actual prompt: {prompt_content}"
-    
-    # Check that client was called
-    mock_client.chat_completion.assert_called_once()
 
 
 @pytest.mark.unit
@@ -136,8 +136,12 @@ def test_enhance_with_cot(patch_config):
         "prompts": {
             "cot_generation": "Generate {num_examples} Chain of Thought reasoning examples from the following text:\n\nText:\n{text}",
             "cot_enhancement": "Enhance the following conversations with Chain of Thought reasoning. Include_simple_steps: {include_simple_steps}\n\nConversations:\n{conversations}",
+        },
+        "generation": {
+            "batch_size": 2  # Set batch size to match our test case
         }
     }
+    # Mock the response to include two enhanced conversations
     mock_client.chat_completion.return_value = json.dumps([
         [
             {
@@ -151,6 +155,20 @@ def test_enhance_with_cot(patch_config):
             {
                 "role": "assistant",
                 "content": "Let me think through this step by step:\n\nSynthetic data is data that is artificially created rather than collected from real-world events. It's generated using algorithms and often mirrors statistical properties of real data.\n\nSo the answer is: Synthetic data is artificially generated data."
+            }
+        ],
+        [
+            {
+                "role": "system",
+                "content": "You are a helpful assistant that provides detailed explanations."
+            },
+            {
+                "role": "user",
+                "content": "Why use synthetic data?"
+            },
+            {
+                "role": "assistant",
+                "content": "Let me think through this step by step:\n\nThere are several reasons to use synthetic data. First, it helps protect privacy by not using real personal data. Second, it can be used to balance datasets for machine learning. Third, it can be generated in large quantities without collecting real data.\n\nSo the answer is: To protect privacy and create diverse training examples."
             }
         ]
     ])
@@ -205,21 +223,55 @@ def test_enhance_with_cot(patch_config):
     assert "Let me think through this step by step" in enhanced[0][2]["content"]
     
     # Check if include_simple_steps parameter was respected and matches what was requested
-    mock_client.chat_completion.assert_called_once()
-    call_args = mock_client.chat_completion.call_args[0][0]
+    assert mock_client.chat_completion.call_count > 0, "Chat completion was never called"
+    call_args = mock_client.chat_completion.call_args_list[0][0][0]
     prompt_content = call_args[0]["content"]
+    
+    # Reset mock to check second call with include_simple_steps=True
+    mock_client.reset_mock()
+    mock_client.chat_completion.return_value = json.dumps([
+        [
+            {
+                "role": "system",
+                "content": "You are a helpful assistant that provides detailed explanations."
+            },
+            {
+                "role": "user",
+                "content": "What is synthetic data?"
+            },
+            {
+                "role": "assistant",
+                "content": "Let me think through this step by step:\n\nSynthetic data is data that is artificially created rather than collected from real-world events.\n\nSo the answer is: Synthetic data is artificially generated data."
+            }
+        ],
+        [
+            {
+                "role": "system",
+                "content": "You are a helpful assistant that provides detailed explanations."
+            },
+            {
+                "role": "user",
+                "content": "Why use synthetic data?"
+            },
+            {
+                "role": "assistant",
+                "content": "Let me think through this step by step:\n\nThere are several reasons to use synthetic data.\n\nSo the answer is: To protect privacy and create diverse training examples."
+            }
+        ]
+    ])
     
     # Try with include_simple_steps=True
     enhanced_true = generator.enhance_with_cot(conversations, include_simple_steps=True)
-    call_args_true = mock_client.chat_completion.call_args[0][0]
+    
+    # Should have been called at least once
+    assert mock_client.chat_completion.call_count > 0, "Chat completion was never called with include_simple_steps=True"
+    
+    call_args_true = mock_client.chat_completion.call_args_list[0][0][0]
     prompt_content_true = call_args_true[0]["content"]
     
     # The parameter value should be respected, not hardcoded
-    if "include_simple_steps: true" not in prompt_content_true:
-        assert False, f"include_simple_steps=True not respected. Actual prompt: {prompt_content_true}"
-    
-    # Check that client was called
-    mock_client.chat_completion.assert_called_once()
+    assert "include_simple_steps: true" in prompt_content_true.lower(), \
+        f"include_simple_steps=True not respected. Actual prompt: {prompt_content_true}"
 
 
 @pytest.mark.unit
