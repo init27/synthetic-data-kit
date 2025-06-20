@@ -146,7 +146,8 @@ def mock_config():
             "summary": "Summarize the following text concisely.",
             "qa_generation": "Generate {num_pairs} high-quality question-answer pairs based on the following text about: {summary}\n\nText:\n{text}",
             "qa_rating": "Rate each question-answer pair on a scale of 1-10 based on quality, accuracy, and relevance.\n\nPairs:\n{pairs}",
-            "cot_generation": "Generate Chain of Thought reasoning examples from the following text about: {summary}\n\nText:\n{text}",
+            "cot_generation": "Generate {num_examples} Chain of Thought reasoning examples from the following text:\n\nText:\n{text}",
+            "cot_enhancement": "Enhance the following conversations with Chain of Thought reasoning. Include_simple_steps: {include_simple_steps}\n\nConversations:\n{conversations}",
         },
     }
 
