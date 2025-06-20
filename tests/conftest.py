@@ -22,9 +22,9 @@ def sample_text_file():
     with tempfile.NamedTemporaryFile(mode="w+", suffix=".txt", delete=False) as f:
         f.write("This is sample text content for testing Synthetic Data Kit.")
         file_path = f.name
-        
+
     yield file_path
-    
+
     # Cleanup
     if os.path.exists(file_path):
         os.unlink(file_path)
@@ -36,12 +36,12 @@ def sample_qa_pairs():
     return [
         {
             "question": "What is synthetic data?",
-            "answer": "Synthetic data is artificially generated data that mimics real data."
+            "answer": "Synthetic data is artificially generated data that mimics real data.",
         },
         {
             "question": "Why use synthetic data for fine-tuning?",
-            "answer": "Synthetic data can help overcome data scarcity and privacy concerns."
-        }
+            "answer": "Synthetic data can help overcome data scarcity and privacy concerns.",
+        },
     ]
 
 
@@ -51,20 +51,20 @@ def sample_qa_pairs_file():
     qa_pairs = [
         {
             "question": "What is synthetic data?",
-            "answer": "Synthetic data is artificially generated data that mimics real data."
+            "answer": "Synthetic data is artificially generated data that mimics real data.",
         },
         {
             "question": "Why use synthetic data for fine-tuning?",
-            "answer": "Synthetic data can help overcome data scarcity and privacy concerns."
-        }
+            "answer": "Synthetic data can help overcome data scarcity and privacy concerns.",
+        },
     ]
-    
+
     with tempfile.NamedTemporaryFile(mode="w+", suffix=".json", delete=False) as f:
         json.dump(qa_pairs, f)
         file_path = f.name
-        
+
     yield file_path
-    
+
     # Cleanup
     if os.path.exists(file_path):
         os.unlink(file_path)
@@ -74,32 +74,38 @@ def sample_qa_pairs_file():
 def mock_llm_client():
     """Mock LLM client for testing."""
     mock_client = MagicMock()
-    mock_client.chat_completion.return_value = json.dumps([
-        {
-            "question": "What is synthetic data?",
-            "answer": "Synthetic data is artificially generated data that mimics real data."
-        },
-        {
-            "question": "Why use synthetic data for fine-tuning?",
-            "answer": "Synthetic data can help overcome data scarcity and privacy concerns."
-        }
-    ])
-    
-    mock_client.batch_completion.return_value = [
-        json.dumps([
+    mock_client.chat_completion.return_value = json.dumps(
+        [
             {
                 "question": "What is synthetic data?",
-                "answer": "Synthetic data is artificially generated data that mimics real data."
-            }
-        ]),
-        json.dumps([
+                "answer": "Synthetic data is artificially generated data that mimics real data.",
+            },
             {
                 "question": "Why use synthetic data for fine-tuning?",
-                "answer": "Synthetic data can help overcome data scarcity and privacy concerns."
-            }
-        ])
+                "answer": "Synthetic data can help overcome data scarcity and privacy concerns.",
+            },
+        ]
+    )
+
+    mock_client.batch_completion.return_value = [
+        json.dumps(
+            [
+                {
+                    "question": "What is synthetic data?",
+                    "answer": "Synthetic data is artificially generated data that mimics real data.",
+                }
+            ]
+        ),
+        json.dumps(
+            [
+                {
+                    "question": "Why use synthetic data for fine-tuning?",
+                    "answer": "Synthetic data can help overcome data scarcity and privacy concerns.",
+                }
+            ]
+        ),
     ]
-    
+
     return mock_client
 
 
@@ -113,41 +119,35 @@ def mock_config():
             "api_key": "mock-key",
             "model": "Llama-3-70B-Instruct",
             "max_retries": 3,
-            "retry_delay": 1
+            "retry_delay": 1,
         },
         "vllm": {
             "api_base": "http://localhost:8000/v1",
             "model": "Llama-3-70B-Instruct",
             "max_retries": 3,
-            "retry_delay": 1
+            "retry_delay": 1,
         },
         "generation": {
             "temperature": 0.7,
             "chunk_size": 4000,
             "overlap": 200,
             "num_pairs": 10,
-            "batch_size": 8
-        },
-        "curate": {
-            "threshold": 7.0,
             "batch_size": 8,
-            "temperature": 0.1
         },
-        "format": {
-            "default": "jsonl"
-        },
+        "curate": {"threshold": 7.0, "batch_size": 8, "temperature": 0.1},
+        "format": {"default": "jsonl"},
         "paths": {
             "output": "data/output",
             "generated": "data/generated",
             "cleaned": "data/cleaned",
-            "final": "data/final"
+            "final": "data/final",
         },
         "prompts": {
             "summary": "Summarize the following text concisely.",
             "qa_generation": "Generate {num_pairs} high-quality question-answer pairs based on the following text about: {summary}\n\nText:\n{text}",
             "qa_rating": "Rate each question-answer pair on a scale of 1-10 based on quality, accuracy, and relevance.\n\nPairs:\n{pairs}",
-            "cot_generation": "Generate Chain of Thought reasoning examples from the following text about: {summary}\n\nText:\n{text}"
-        }
+            "cot_generation": "Generate Chain of Thought reasoning examples from the following text about: {summary}\n\nText:\n{text}",
+        },
     }
 
 
@@ -159,9 +159,9 @@ def test_env():
     # Only use API_ENDPOINT_KEY for consistency with the code
     os.environ["API_ENDPOINT_KEY"] = "mock-api-key-for-testing"
     os.environ["SDK_VERBOSE"] = "false"
-    
+
     yield
-    
+
     # Restore original environment
     os.environ.clear()
     os.environ.update(original_env)
@@ -178,40 +178,34 @@ def patch_config():
                 "api_key": "mock-key",
                 "model": "Llama-3-70B-Instruct",
                 "max_retries": 3,
-                "retry_delay": 1
+                "retry_delay": 1,
             },
             "vllm": {
                 "api_base": "http://localhost:8000/v1",
                 "model": "Llama-3-70B-Instruct",
                 "max_retries": 3,
-                "retry_delay": 1
+                "retry_delay": 1,
             },
             "generation": {
                 "temperature": 0.7,
                 "chunk_size": 4000,
                 "overlap": 200,
                 "num_pairs": 10,
-                "batch_size": 8
-            },
-            "curate": {
-                "threshold": 7.0,
                 "batch_size": 8,
-                "temperature": 0.1
             },
-            "format": {
-                "default": "jsonl"
-            },
+            "curate": {"threshold": 7.0, "batch_size": 8, "temperature": 0.1},
+            "format": {"default": "jsonl"},
             "paths": {
                 "output": "data/output",
                 "generated": "data/generated",
                 "cleaned": "data/cleaned",
-                "final": "data/final"
+                "final": "data/final",
             },
             "prompts": {
                 "summary": "Summarize the following text concisely.",
                 "qa_generation": "Generate {num_pairs} high-quality question-answer pairs based on the following text about: {summary}\n\nText:\n{text}",
                 "qa_rating": "Rate each question-answer pair on a scale of 1-10 based on quality, accuracy, and relevance.\n\nPairs:\n{pairs}",
-                "cot_generation": "Generate Chain of Thought reasoning examples from the following text about: {summary}\n\nText:\n{text}"
-            }
+                "cot_generation": "Generate Chain of Thought reasoning examples from the following text about: {summary}\n\nText:\n{text}",
+            },
         }
         yield mock_load_config
