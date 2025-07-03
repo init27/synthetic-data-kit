@@ -14,3 +14,4 @@ data/output/2407.21783v2.txt
 data/pdf/2407.21783v2.pdf
 synthetic_data_kit/.config.yaml.swp
 TESTING_DOCUMENTATION.md
+.coverage
