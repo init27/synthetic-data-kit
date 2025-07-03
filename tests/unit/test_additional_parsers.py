@@ -23,7 +23,7 @@ class TestDOCXParser:
         parser = DOCXParser()
         assert parser is not None
 
-    @patch('builtins.__import__')
+    @patch("builtins.__import__")
     def test_docx_parse_success(self, mock_import):
         """Test successful DOCX parsing with paragraphs and tables"""
         # Setup mock docx module
@@ -64,10 +64,10 @@ class TestDOCXParser:
         assert result == expected
         # Verify docx import was called (first argument of any call should be 'docx')
         import_calls = [call[0][0] for call in mock_import.call_args_list if call[0]]
-        assert 'docx' in import_calls
+        assert "docx" in import_calls
         mock_docx.Document.assert_called_once_with("/fake/path.docx")
 
-    @patch('builtins.__import__')
+    @patch("builtins.__import__")
     def test_docx_parse_import_error(self, mock_import):
         """Test ImportError when docx module is not available"""
         mock_import.side_effect = ImportError("No module named 'docx'")
@@ -98,7 +98,7 @@ class TestPPTParser:
         parser = PPTParser()
         assert parser is not None
 
-    @patch('builtins.__import__')
+    @patch("builtins.__import__")
     def test_ppt_parse_success(self, mock_import):
         """Test successful PPTX parsing with slides and shapes"""
         # Setup mock pptx module
@@ -142,16 +142,16 @@ class TestPPTParser:
             "Slide 1 content",
             "",  # Empty line between slides
             "--- Slide 2 ---",
-            "Slide 2 content"
+            "Slide 2 content",
         ]
         expected = "\n\n".join(["\n".join(expected_lines[:4]), "\n".join(expected_lines[5:])])
         assert result == expected
         # Verify pptx import was called
         import_calls = [call[0][0] for call in mock_import.call_args_list if call[0]]
-        assert 'pptx' in import_calls
+        assert "pptx" in import_calls
         mock_presentation_class.assert_called_once_with("/fake/path.pptx")
 
-    @patch('builtins.__import__')
+    @patch("builtins.__import__")
     def test_ppt_parse_import_error(self, mock_import):
         """Test ImportError when pptx module is not available"""
         mock_import.side_effect = ImportError("No module named 'pptx'")
@@ -182,12 +182,13 @@ class TestYouTubeParser:
         parser = YouTubeParser()
         assert parser is not None
 
-    @patch('builtins.__import__')
+    @patch("builtins.__import__")
     def test_youtube_parse_success(self, mock_import):
         """Test successful YouTube transcript parsing"""
+
         # Setup mock modules
         def mock_import_side_effect(name, *args, **kwargs):
-            if name == 'pytubefix':
+            if name == "pytubefix":
                 mock_pytubefix = MagicMock()
                 mock_yt = MagicMock()
                 mock_yt.video_id = "test_video_id"
@@ -196,14 +197,16 @@ class TestYouTubeParser:
                 mock_yt.length = 120
                 mock_pytubefix.YouTube.return_value = mock_yt
                 return mock_pytubefix
-            elif name == 'youtube_transcript_api':
+            elif name == "youtube_transcript_api":
                 mock_transcript_api = MagicMock()
                 mock_transcript = [
                     {"text": "Hello everyone"},
                     {"text": "Welcome to this video"},
-                    {"text": "Today we'll learn about testing"}
+                    {"text": "Today we'll learn about testing"},
                 ]
-                mock_transcript_api.YouTubeTranscriptApi.get_transcript.return_value = mock_transcript
+                mock_transcript_api.YouTubeTranscriptApi.get_transcript.return_value = (
+                    mock_transcript
+                )
                 return mock_transcript_api
             return MagicMock()  # fallback for other imports
 
@@ -226,14 +229,15 @@ class TestYouTubeParser:
 
         # Verify imports were called
         import_calls = [call[0][0] for call in mock_import.call_args_list]
-        assert 'pytubefix' in import_calls
-        assert 'youtube_transcript_api' in import_calls
+        assert "pytubefix" in import_calls
+        assert "youtube_transcript_api" in import_calls
 
-    @patch('builtins.__import__')
+    @patch("builtins.__import__")
     def test_youtube_parse_import_error_pytube(self, mock_import):
         """Test ImportError when YouTube module is not available"""
+
         def import_side_effect(name, *args, **kwargs):
-            if name == 'pytubefix':
+            if name == "pytubefix":
                 raise ImportError("No module named 'pytubefix'")
             return MagicMock()
 
@@ -242,13 +246,14 @@ class TestYouTubeParser:
         with pytest.raises(ImportError, match="pytube and youtube-transcript-api are required"):
             parser.parse("https://www.youtube.com/watch?v=test")
 
-    @patch('builtins.__import__')
+    @patch("builtins.__import__")
     def test_youtube_parse_import_error_transcript(self, mock_import):
         """Test ImportError when transcript API is not available"""
+
         def import_side_effect(name, *args, **kwargs):
-            if name == 'youtube_transcript_api':
+            if name == "youtube_transcript_api":
                 raise ImportError("No module named 'youtube_transcript_api'")
-            elif name == 'pytubefix':
+            elif name == "pytubefix":
                 return MagicMock()  # pytubefix succeeds
             return MagicMock()
 
@@ -271,12 +276,13 @@ class TestYouTubeParser:
             with open(output_path, encoding="utf-8") as f:
                 assert f.read() == content
 
-    @patch('builtins.__import__')
+    @patch("builtins.__import__")
     def test_youtube_parse_empty_transcript(self, mock_import):
         """Test parsing with empty transcript"""
+
         # Setup mock modules with empty transcript
         def mock_import_side_effect(name, *args, **kwargs):
-            if name == 'pytubefix':
+            if name == "pytubefix":
                 mock_pytubefix = MagicMock()
                 mock_yt = MagicMock()
                 mock_yt.video_id = "test_video_id"
@@ -285,7 +291,7 @@ class TestYouTubeParser:
                 mock_yt.length = 0
                 mock_pytubefix.YouTube.return_value = mock_yt
                 return mock_pytubefix
-            elif name == 'youtube_transcript_api':
+            elif name == "youtube_transcript_api":
                 mock_transcript_api = MagicMock()
                 mock_transcript_api.YouTubeTranscriptApi.get_transcript.return_value = []
                 return mock_transcript_api

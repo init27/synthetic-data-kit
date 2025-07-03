@@ -19,25 +19,25 @@ class TestAppContext:
 
     def test_app_context_initialization_default_config(self):
         """Test AppContext initialization with default config path"""
-        with patch('synthetic_data_kit.core.context.DEFAULT_CONFIG_PATH', '/fake/default/path'):
-            with patch.object(AppContext, '_ensure_data_dirs'):
+        with patch("synthetic_data_kit.core.context.DEFAULT_CONFIG_PATH", "/fake/default/path"):
+            with patch.object(AppContext, "_ensure_data_dirs"):
                 context = AppContext()
-                assert context.config_path == '/fake/default/path'
+                assert context.config_path == "/fake/default/path"
                 assert context.config == {}
 
     def test_app_context_initialization_custom_config(self):
         """Test AppContext initialization with custom config path"""
-        custom_path = Path('/custom/config/path')
-        with patch.object(AppContext, '_ensure_data_dirs'):
+        custom_path = Path("/custom/config/path")
+        with patch.object(AppContext, "_ensure_data_dirs"):
             context = AppContext(config_path=custom_path)
             assert context.config_path == custom_path
             assert context.config == {}
 
-    @patch('synthetic_data_kit.core.context.os.makedirs')
+    @patch("synthetic_data_kit.core.context.os.makedirs")
     def test_ensure_data_dirs(self, mock_makedirs):
         """Test that _ensure_data_dirs creates all required directories"""
-        with patch('synthetic_data_kit.core.context.DEFAULT_CONFIG_PATH', '/fake/path'):
-            context = AppContext()
+        with patch("synthetic_data_kit.core.context.DEFAULT_CONFIG_PATH", "/fake/path"):
+            AppContext()
 
             # Verify all expected directories are created
             expected_dirs = [
@@ -67,8 +67,8 @@ class TestAppContext:
             try:
                 os.chdir(temp_dir)
 
-                with patch('synthetic_data_kit.core.context.DEFAULT_CONFIG_PATH', '/fake/path'):
-                    context = AppContext()
+                with patch("synthetic_data_kit.core.context.DEFAULT_CONFIG_PATH", "/fake/path"):
+                    AppContext()
 
                 # Verify all directories were actually created
                 expected_dirs = [
@@ -94,52 +94,52 @@ class TestAppContext:
 
     def test_config_attribute_mutable(self):
         """Test that config attribute can be modified"""
-        with patch.object(AppContext, '_ensure_data_dirs'):
+        with patch.object(AppContext, "_ensure_data_dirs"):
             context = AppContext()
 
             # Initially empty
             assert context.config == {}
 
             # Should be able to modify
-            context.config['test_key'] = 'test_value'
-            assert context.config['test_key'] == 'test_value'
+            context.config["test_key"] = "test_value"
+            assert context.config["test_key"] == "test_value"
 
             # Should be able to add nested structure
-            context.config['nested'] = {'inner_key': 'inner_value'}
-            assert context.config['nested']['inner_key'] == 'inner_value'
+            context.config["nested"] = {"inner_key": "inner_value"}
+            assert context.config["nested"]["inner_key"] == "inner_value"
 
     def test_multiple_instances_independent(self):
         """Test that multiple AppContext instances are independent"""
-        with patch.object(AppContext, '_ensure_data_dirs'):
-            context1 = AppContext(config_path=Path('/path1'))
-            context2 = AppContext(config_path=Path('/path2'))
+        with patch.object(AppContext, "_ensure_data_dirs"):
+            context1 = AppContext(config_path=Path("/path1"))
+            context2 = AppContext(config_path=Path("/path2"))
 
             # Different config paths
             assert context1.config_path != context2.config_path
 
             # Independent config dictionaries
-            context1.config['key1'] = 'value1'
-            context2.config['key2'] = 'value2'
+            context1.config["key1"] = "value1"
+            context2.config["key2"] = "value2"
 
-            assert 'key1' in context1.config
-            assert 'key1' not in context2.config
-            assert 'key2' in context2.config
-            assert 'key2' not in context1.config
+            assert "key1" in context1.config
+            assert "key1" not in context2.config
+            assert "key2" in context2.config
+            assert "key2" not in context1.config
 
-    @patch('synthetic_data_kit.core.context.os.makedirs')
+    @patch("synthetic_data_kit.core.context.os.makedirs")
     def test_ensure_data_dirs_exception_handling(self, mock_makedirs):
         """Test that AppContext handles directory creation errors gracefully"""
         # Mock makedirs to raise an exception
         mock_makedirs.side_effect = OSError("Permission denied")
 
-        with patch('synthetic_data_kit.core.context.DEFAULT_CONFIG_PATH', '/fake/path'):
+        with patch("synthetic_data_kit.core.context.DEFAULT_CONFIG_PATH", "/fake/path"):
             # Should raise the OSError since _ensure_data_dirs doesn't catch exceptions
             with pytest.raises(OSError, match="Permission denied"):
                 AppContext()
 
     def test_config_path_type_handling(self):
         """Test that config_path handles different path types correctly"""
-        with patch.object(AppContext, '_ensure_data_dirs'):
+        with patch.object(AppContext, "_ensure_data_dirs"):
             # Test with string path
             string_path = "/string/path"
             context1 = AppContext(config_path=string_path)

@@ -27,7 +27,7 @@ def test_parse_qa_pairs_invalid_json():
     Here are some results:
     [
         {"question": "What is synthetic data?", "answer": "It's artificial data."},
-        {"question": "Why use synthetic data?", 
+        {"question": "Why use synthetic data?",
     """
     result = parse_qa_pairs(partial_json)
 
@@ -47,7 +47,7 @@ def test_llm_client_error_handling(patch_config, test_env):
 
         # Should handle the exception gracefully
         with pytest.raises(Exception) as excinfo:
-            client = LLMClient(provider="api-endpoint")
+            LLMClient(provider="api-endpoint")
 
         # Check that the error message is helpful
         assert "API Error" in str(excinfo.value)
@@ -132,7 +132,7 @@ def test_create_invalid_content_type(patch_config, test_env):
 
     try:
         # Mock the LLM client
-        with patch("synthetic_data_kit.core.create.LLMClient") as mock_llm_client_class:
+        with patch("synthetic_data_kit.core.create.LLMClient"):
             # Try to create with an invalid content type
             with pytest.raises(ValueError) as excinfo:
                 create.process_file(
@@ -176,7 +176,7 @@ def test_curate_input_validation(patch_config, test_env):
             empty_file_path = f.name
 
         # Mock the LLM client
-        with patch("synthetic_data_kit.core.curate.LLMClient") as mock_llm_client_class:
+        with patch("synthetic_data_kit.core.curate.LLMClient"):
             # Try to curate an empty file
             with pytest.raises(ValueError) as excinfo:
                 curate.curate_qa_pairs(input_path=empty_file_path, output_path=output_path)
@@ -192,5 +192,5 @@ def test_curate_input_validation(patch_config, test_env):
         if os.path.exists(output_dir):
             try:
                 os.rmdir(output_dir)
-            except:
+            except OSError:
                 pass

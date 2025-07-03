@@ -90,7 +90,7 @@ class QAGenerator:
 
         # Prepare all message batches
         all_messages = []
-        for i, chunk in enumerate(chunks):
+        for _i, chunk in enumerate(chunks):
             # Format the prompt with summary and text
             qa_prompt = qa_prompt_template.format(
                 num_pairs=pairs_per_chunk, summary=summary[:100], text=chunk

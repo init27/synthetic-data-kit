@@ -1,6 +1,5 @@
 """Unit tests for LLM processing utilities."""
 
-
 import pytest
 
 from synthetic_data_kit.utils import llm_processing

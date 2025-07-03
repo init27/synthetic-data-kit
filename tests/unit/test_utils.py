@@ -98,10 +98,6 @@ def test_extract_json_list_from_text():
 def test_load_config(tmpdir):
     """Test loading config from file."""
     # Create a temporary config file
-    config_data = {
-        "llm": {"provider": "test-provider"},
-        "test-provider": {"api_base": "http://test-api.com", "model": "test-model"},
-    }
 
     config_path = Path(tmpdir) / "test_config.yaml"
     with open(config_path, "w") as f:

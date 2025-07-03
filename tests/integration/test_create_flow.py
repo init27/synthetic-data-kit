@@ -46,7 +46,6 @@ def test_process_file(patch_config, test_env):
                         "os.path.join",
                         return_value=os.path.join(output_dir, "output_qa_pairs.json"),
                     ):
-
                         # Run the process_file function with minimal arguments
                         output_path = create.process_file(
                             file_path=input_path,

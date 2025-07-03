@@ -72,6 +72,7 @@ def sample_qa_pairs_file():
 
 # Mock factories for reusable test components
 
+
 class MockLLMClientFactory:
     """Factory for creating mock LLM clients with different configurations."""
 
@@ -92,9 +93,7 @@ class MockLLMClientFactory:
 
         mock_client = MagicMock()
         mock_client.chat_completion.return_value = json.dumps(qa_pairs)
-        mock_client.batch_completion.return_value = [
-            json.dumps([pair]) for pair in qa_pairs
-        ]
+        mock_client.batch_completion.return_value = [json.dumps([pair]) for pair in qa_pairs]
         return mock_client
 
     @staticmethod
@@ -104,7 +103,7 @@ class MockLLMClientFactory:
             cot_examples = [
                 {
                     "reasoning": "Let me think step by step...",
-                    "answer": "Based on my analysis, the answer is..."
+                    "answer": "Based on my analysis, the answer is...",
                 }
             ]
 
@@ -130,9 +129,7 @@ class MockLLMClientFactory:
 
         mock_client = MagicMock()
         mock_client.chat_completion.return_value = json.dumps(ratings)
-        mock_client.batch_completion.return_value = [
-            json.dumps([rating]) for rating in ratings
-        ]
+        mock_client.batch_completion.return_value = [json.dumps([rating]) for rating in ratings]
         return mock_client
 
 
@@ -245,6 +242,7 @@ def patch_vllm_config(config_factory):
 
 # Additional utility fixtures for common test patterns
 
+
 @pytest.fixture
 def temp_output_dir():
     """Create a temporary output directory for tests."""
@@ -255,10 +253,9 @@ def temp_output_dir():
 @pytest.fixture
 def mock_file_operations():
     """Mock common file operations for testing."""
-    with patch('builtins.open'), \
-         patch('os.makedirs'), \
-         patch('os.path.exists', return_value=True), \
-         patch('pathlib.Path.exists', return_value=True):
+    with patch("builtins.open"), patch("os.makedirs"), patch(
+        "os.path.exists", return_value=True
+    ), patch("pathlib.Path.exists", return_value=True):
         yield
 
 
@@ -269,13 +266,13 @@ def sample_cot_data():
         {
             "query": "What is 2 + 2?",
             "reasoning": "Let me solve this step by step. First, I need to add 2 and 2. This is a basic arithmetic operation.",
-            "answer": "2 + 2 = 4"
+            "answer": "2 + 2 = 4",
         },
         {
             "query": "Explain photosynthesis",
             "reasoning": "To explain photosynthesis, I need to break it down into its key components and process.",
-            "answer": "Photosynthesis is the process by which plants convert sunlight into energy."
-        }
+            "answer": "Photosynthesis is the process by which plants convert sunlight into energy.",
+        },
     ]
 
 
@@ -286,13 +283,16 @@ def sample_conversations():
         {
             "messages": [
                 {"role": "user", "content": "How do I bake a cake?"},
-                {"role": "assistant", "content": "To bake a cake, you need flour, eggs, sugar, and butter."}
+                {
+                    "role": "assistant",
+                    "content": "To bake a cake, you need flour, eggs, sugar, and butter.",
+                },
             ]
         },
         {
             "messages": [
                 {"role": "user", "content": "What's the weather like?"},
-                {"role": "assistant", "content": "I don't have access to current weather data."}
+                {"role": "assistant", "content": "I don't have access to current weather data."},
             ]
-        }
+        },
     ]

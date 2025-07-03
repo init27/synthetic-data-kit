@@ -254,7 +254,7 @@ def test_to_hf_dataset():
             mock_dataset.from_dict.return_value = mock_dataset_instance
 
             # Convert to HF dataset
-            result_path = to_hf_dataset(qa_pairs, output_path)
+            to_hf_dataset(qa_pairs, output_path)
 
             # Check that Dataset.from_dict was called with the right structure
             mock_dataset.from_dict.assert_called_once()

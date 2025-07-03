@@ -124,9 +124,9 @@ def test_generate_cot_examples(patch_config):
     print(f"DEBUG - Prompt content: {prompt_content}")
 
     # Bug #2 check: Was the actual document text included?
-    assert (
-        "This is a document about synthetic data" in prompt_content
-    ), f"Document text not included in prompt. Actual prompt: {prompt_content}"
+    assert "This is a document about synthetic data" in prompt_content, (
+        f"Document text not included in prompt. Actual prompt: {prompt_content}"
+    )
 
 
 @pytest.mark.unit
@@ -206,7 +206,7 @@ def test_enhance_with_cot(patch_config):
     # Check if include_simple_steps parameter was respected and matches what was requested
     assert mock_client.chat_completion.call_count > 0, "Chat completion was never called"
     call_args = mock_client.chat_completion.call_args_list[0][0][0]
-    prompt_content = call_args[0]["content"]
+    call_args[0]["content"]
 
     # Reset mock to check second call with include_simple_steps=True
     mock_client.reset_mock()
@@ -238,20 +238,20 @@ def test_enhance_with_cot(patch_config):
     )
 
     # Try with include_simple_steps=True
-    enhanced_true = generator.enhance_with_cot(conversations, include_simple_steps=True)
+    generator.enhance_with_cot(conversations, include_simple_steps=True)
 
     # Should have been called at least once
-    assert (
-        mock_client.chat_completion.call_count > 0
-    ), "Chat completion was never called with include_simple_steps=True"
+    assert mock_client.chat_completion.call_count > 0, (
+        "Chat completion was never called with include_simple_steps=True"
+    )
 
     call_args_true = mock_client.chat_completion.call_args_list[0][0][0]
     prompt_content_true = call_args_true[0]["content"]
 
     # The parameter value should be respected, not hardcoded
-    assert (
-        "include_simple_steps: true" in prompt_content_true.lower()
-    ), f"include_simple_steps=True not respected. Actual prompt: {prompt_content_true}"
+    assert "include_simple_steps: true" in prompt_content_true.lower(), (
+        f"include_simple_steps=True not respected. Actual prompt: {prompt_content_true}"
+    )
 
 
 @pytest.mark.unit
