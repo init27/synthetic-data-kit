@@ -11,10 +11,10 @@
             </div>
             <div class="card-body">
                 <p>Curate and improve existing question-answer pairs using the {{ provider }} provider.</p>
-                
+
                 <form method="POST" class="mt-4 loading-form" data-loading-message="Curating QA pairs with LLM... This may take a minute or two">
                     {{ form.csrf_token }}
-                    
+
                     <div class="mb-3">
                         <label for="input_file" class="form-label">{{ form.input_file.label }}</label>
                         {% if json_files %}
@@ -41,7 +41,7 @@
                         {% endif %}
                         <div class="form-text">Enter the path to the JSON file containing QA pairs you want to curate.</div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="num_pairs" class="form-label">{{ form.num_pairs.label }}</label>
                         {{ form.num_pairs(class="form-control", placeholder="Number of QA pairs to keep (0 for all)") }}
@@ -54,7 +54,7 @@
                         {% endif %}
                         <div class="form-text">Enter the number of QA pairs you want to keep after curation (0 to keep all pairs).</div>
                     </div>
-                    
+
                     <div class="accordion" id="advancedOptions">
                         <div class="accordion-item">
                             <h2 class="accordion-header" id="headingAdvanced">
@@ -69,7 +69,7 @@
                                         {{ form.model(class="form-control", placeholder="Leave blank for default model") }}
                                         <div class="form-text">Specify a model name to use instead of the default.</div>
                                     </div>
-                                    
+
                                     <div class="mb-3">
                                         <label for="api_base" class="form-label">{{ form.api_base.label }}</label>
                                         {{ form.api_base(class="form-control", placeholder="Leave blank for default API URL") }}
@@ -79,7 +79,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                         {{ form.submit(class="btn btn-success") }}
                     </div>

@@ -6,13 +6,13 @@ Generate Reasoning Traces, QA Pairs, save them to a fine-tuning format with a si
 
 > [Checkout our guide on using the tool to unlock task-specific reasoning in Llama-3 family](https://github.com/meta-llama/synthetic-data-kit/tree/main/use-cases/adding_reasoning_to_llama_3)
 
-# What does Synthetic Data Kit offer? 
+# What does Synthetic Data Kit offer?
 
 Fine-Tuning Large Language Models is easy. There are many mature tools that you can use to fine-tune Llama model family using various post-training techniques.
 
 ### Why target data preparation?
 
-Multiple tools support standardized formats. However, most of the times your dataset is not structured in "user", "assistant" threads or in a certain format that plays well with a fine-tuning packages. 
+Multiple tools support standardized formats. However, most of the times your dataset is not structured in "user", "assistant" threads or in a certain format that plays well with a fine-tuning packages.
 
 This toolkit simplifies the journey of:
 
@@ -22,13 +22,13 @@ This toolkit simplifies the journey of:
 - Creating synthetic datasets
 - Supporting various formats of post-training fine-tuning
 
-# How does Synthetic Data Kit offer it? 
+# How does Synthetic Data Kit offer it?
 
 The tool is designed to follow a simple CLI structure with 4 commands:
 
 - `ingest` various file formats
 - `create` your fine-tuning format: `QA` pairs, `QA` pairs with CoT, `summary` format
-- `curate`: Using Llama as a judge to curate high quality examples. 
+- `curate`: Using Llama as a judge to curate high quality examples.
 - `save-as`: After that you can simply save these to a format that your fine-tuning workflow requires.
 
 You can override any parameter or detail by either using the CLI or overriding the default YAML config.
@@ -41,7 +41,7 @@ You can override any parameter or detail by either using the CLI or overriding t
 ```bash
 # Create a new environment
 
-conda create -n synthetic-data python=3.10 
+conda create -n synthetic-data python=3.10
 
 conda activate synthetic-data
 
@@ -56,7 +56,7 @@ cd synthetic-data-kit
 pip install -e .
 ```
 
-To get an overview of commands type: 
+To get an overview of commands type:
 
 `synthetic-data-kit --help`
 
@@ -92,7 +92,7 @@ synthetic-data-kit ingest docs/report.pdf
 # Generate QA pairs (default)
 synthetic-data-kit create data/output/report.txt --type qa
 
-OR 
+OR
 
 # Generate Chain of Thought (CoT) reasoning examples
 synthetic-data-kit create data/output/report.txt --type cot
@@ -188,7 +188,7 @@ synthetic-data-kit create data/output/youtube_dQw4w9WgXcQ.txt
 # Bash script to process multiple files
 for file in data/pdf/*.pdf; do
   filename=$(basename "$file" .pdf)
-  
+
   synthetic-data-kit ingest "$file"
   synthetic-data-kit create "data/output/${filename}.txt" -n 20
   synthetic-data-kit curate "data/generated/${filename}_qa_pairs.json" -t 7.5
@@ -207,11 +207,11 @@ prompts:
   qa_generation: |
     You are creating question-answer pairs for fine-tuning a legal assistant.
     Focus on technical legal concepts, precedents, and statutory interpretation.
-    
+
     Below is a chunk of text about: {summary}...
-    
+
     Create {num_pairs} high-quality question-answer pairs based ONLY on this text.
-    
+
     Return ONLY valid JSON formatted as:
     [
       {
@@ -220,7 +220,7 @@ prompts:
       },
       ...
     ]
-    
+
     Text:
     ---
     {text}
@@ -236,18 +236,18 @@ graph LR
     SDK --> Create[create]
     SDK --> Curate[curate]
     SDK --> SaveAs[save-as]
-    
+
     Ingest --> PDFFile[PDF File]
     Ingest --> HTMLFile[HTML File]
     Ingest --> YouTubeURL[File Format]
 
-    
+
     Create --> CoT[CoT]
     Create --> QA[QA Pairs]
     Create --> Summary[Summary]
-    
+
     Curate --> Filter[Filter by Quality]
-    
+
     SaveAs --> JSONL[JSONL Format]
     SaveAs --> Alpaca[Alpaca Format]
     SaveAs --> FT[Fine-Tuning Format]

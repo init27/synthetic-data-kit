@@ -20,7 +20,7 @@ We use our CLI to unlock reasoning in Llama-3 models:
 
 Using approx 10k examples of Tool Calling pairs, we introduce new "reasoning" behaviour in Llama-3 model family. Below is an example of a behaviour change with the model:
 
-## Before: 
+## Before:
 
 **Assistant:** <tool>[calc_binomial_probability(n=20, k=5, p=1/6)]</tool>
 
@@ -35,7 +35,7 @@ This guide shows you how to use the `cot-enhance` feature of the CLI to "unlock"
 
 Why do we measure improvements using BFCL?
 
-Tool calling is one of the fundamental tasks at improving LLMs' agentic performance. BFCL is the default benchmark for measuring tool-calling performance. 
+Tool calling is one of the fundamental tasks at improving LLMs' agentic performance. BFCL is the default benchmark for measuring tool-calling performance.
 
 It has an independent score of model performance that we can measure and validate.
 
@@ -98,17 +98,17 @@ prompts:
     Think out loud and maximize your tokens when adding CoT.
 
     For example, if you see:
-    
+
     "from": "assistant",
     "value": "<tool>[Some API(param=\"value\")]</tool>"
-    
+
     Change it to:
-    
+
     "from": "assistant",
-    "value": "Let me think about this request. I need to gather X information using Tool Y. 
-    To do this, I need to set the parameter to 'value' because of reason Z. 
+    "value": "Let me think about this request. I need to gather X information using Tool Y.
+    To do this, I need to set the parameter to 'value' because of reason Z.
     <tool>[Some API(param=\"value\")]</tool>"
-    
+
     BEGIN WORK NOW. Enhance the assistant's messages with detailed Chain of Thought reasoning before each tool call:
     {conversations}
 ```
@@ -172,7 +172,7 @@ The `cot-enhance` feature is designed to be easily integrated into your data pro
    ```bash
    # Process a single file
    synthetic-data-kit -c custom_config.yaml create input.json --type cot-enhance -o enhanced_output/
-   
+
    # Process multiple files with a loop
    for file in input_files/*.json; do
      basename=$(basename "$file" .json)
@@ -184,7 +184,7 @@ The `cot-enhance` feature is designed to be easily integrated into your data pro
    ```python
    from synthetic_data_kit.core.create import process_file
    from pathlib import Path
-   
+
    # Process a batch of files
    input_files = ["file1.json", "file2.json", "file3.json"]
    for input_file in input_files:
@@ -223,7 +223,7 @@ When working with the CoT enhancement process, you might encounter some challeng
 ### VLLM Server Issues
 
 - **Problem**: The enhancement process runs but doesn't add CoT reasoning
-- **Solution**: 
+- **Solution**:
   - Ensure your VLLM server is running with `vllm serve your-model --port 8000`
   - Check connectivity with `synthetic-data-kit system-check`
   - Verify your model is capable of following complex prompts (Llama-3-70B-Instruct or similar recommended)

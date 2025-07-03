@@ -43,34 +43,34 @@ graph TD
     Core --> Generators
     Core --> LLMClient
     Core --> FormatConverter
-    
+
     Parsers --> PDFParser
     Parsers --> HTMLParser
     Parsers --> YouTubeParser
     Parsers --> DOCXParser
     Parsers --> PPTParser
     Parsers --> TXTParser
-    
+
     Generators --> QAGenerator
     Generators --> COTGenerator
-    
+
     Config[Configuration] --> CLI
     Config --> Core
     Config --> LLMClient
     Config --> Generators
-    
+
     Utils[Utilities] --> TextProcessing
     Utils --> LLMProcessing
     Utils --> ConfigUtils
     Utils --> FormatConverter
     Utils --> DatasetUtils[HF Dataset Utils]
-    
+
     LLMClient --> BatchProcessing[Batch Processing]
-    
+
     LLMProcessing --> ParseQAPairs[Parse QA Pairs]
     LLMProcessing --> ParseRatings[Enhanced Rating Parser]
     LLMProcessing --> ConversionUtils[Conversation Format Utils]
-    
+
     EnvVars[Environment Variables] -.-> Core
     EnvVars -.-> LLMProcessing
 ```
@@ -212,14 +212,14 @@ sequenceDiagram
     participant LLMClient
     participant QAGenerator
     participant FormatConverter
-    
+
     User->>CLI: synthetic-data-kit ingest file.pdf
     CLI->>Parsers: determine_parser(file.pdf)
     Parsers-->>CLI: PDFParser
     CLI->>Parsers: parse(file.pdf)
     Parsers-->>CLI: Extracted text
     CLI-->>User: Text saved to data/output/file.txt
-    
+
     User->>CLI: synthetic-data-kit create file.txt
     CLI->>LLMClient: Initialize with config
     CLI->>QAGenerator: process_document(text)
@@ -231,17 +231,17 @@ sequenceDiagram
     LLMClient-->>QAGenerator: Rated pairs
     QAGenerator-->>CLI: Results
     CLI-->>User: QA pairs saved to data/generated/file_qa_pairs.json
-    
+
     User->>CLI: synthetic-data-kit curate file_qa_pairs.json -v
     CLI->>LLMClient: Initialize with config
     CLI->>QAGenerator: rate_qa_pairs()
-    
+
     QAGenerator->>LLMClient: Process in batches
     LLMClient-->>QAGenerator: Batch responses
-    
+
     QAGenerator->>ParseRatings: Parse with multiple methods
     Note over ParseRatings: Enhanced JSON parsing
-    
+
     alt Successful parsing
         ParseRatings-->>QAGenerator: Parsed ratings
     else Parsing failed
@@ -251,11 +251,11 @@ sequenceDiagram
         QAGenerator->>ParseRatings: Parse individual results
         ParseRatings-->>QAGenerator: Individual ratings
     end
-    
+
     QAGenerator->>QAGenerator: Apply threshold & metrics
     QAGenerator-->>CLI: Filtered pairs with stats
     CLI-->>User: Cleaned data saved to data/cleaned/file_cleaned.json
-    
+
     User->>CLI: synthetic-data-kit save-as file_cleaned.json -f ft
     CLI->>FormatConverter: convert_format(input, output, format)
     FormatConverter-->>CLI: Converted data
@@ -322,16 +322,16 @@ graph LR
     SDK --> Curate[curate]
     SDK --> SaveAs[save-as]
     SDK --> SystemCheck[system-check]
-    
+
     Ingest --> PDFFile[PDF File]
     Ingest --> HTMLFile[HTML File]
     Ingest --> YouTubeURL[YouTube URL]
-    
+
     Create --> QA[QA Pairs]
     Create --> Summary[Summary]
-    
+
     Curate --> Filter[Filter by Quality]
-    
+
     SaveAs --> JSONL[JSONL Format]
     SaveAs --> Alpaca[Alpaca Format]
     SaveAs --> FT[Fine-Tuning Format]
@@ -513,7 +513,7 @@ synthetic-data-kit save-as data/cleaned/document_cleaned.json -f ft
 # Convert to fine-tuning format (HF dataset)
 synthetic-data-kit save-as data/cleaned/document_cleaned.json -f ft --storage hf
 
-# Convert to ChatML format (HF dataset) with specific output location 
+# Convert to ChatML format (HF dataset) with specific output location
 synthetic-data-kit save-as data/cleaned/document_cleaned.json -f chatml --storage hf -o data/final/custom_name
 ```
 
@@ -576,12 +576,12 @@ prompts:
 
   qa_generation: |
     Create {num_pairs} question-answer pairs from this text for LLM training.
-    
+
     Rules:
     1. Questions must be about important facts in the text
     2. Answers must be directly supported by the text
     3. Return JSON format only:
-    
+
     [
       {{
         "question": "Question 1?",
@@ -592,19 +592,19 @@ prompts:
         "answer": "Answer 2."
       }}
     ]
-    
+
     Text:
     {text}
 
   qa_rating: |
     You are a helpful JSON processor that rates question-answer pairs.
-    
+
     Your task is to rate each pair on a scale from 1-10 and return valid JSON with added ratings.
-    
+
     ONLY return a valid JSON array with the original pairs plus ratings. Do not include any explanations or text outside the JSON.
-    
+
     Here are the pairs to rate:
-    
+
     {pairs}
 ```
 
@@ -668,14 +668,14 @@ graph TD
     Parser -->|DOCX| DOCXParser[DOCX Parser]
     Parser -->|PPT| PPTParser[PPT Parser]
     Parser -->|TXT| TXTParser[TXT Parser]
-    
+
     PDFParser --> TextExtraction[Text Extraction]
     HTMLParser --> TextExtraction
     YouTubeParser --> TextExtraction
     DOCXParser --> TextExtraction
     PPTParser --> TextExtraction
     TXTParser --> TextExtraction
-    
+
     TextExtraction --> CleanText[Clean Text]
     CleanText --> SaveText[Save Text File]
 ```
@@ -692,7 +692,7 @@ def determine_parser(file_path, config):
             return YouTubeParser()
         else:
             return HTMLParser()
-    
+
     # File handling
     ext = os.path.splitext(file_path)[1].lower()
     parsers = {
@@ -703,7 +703,7 @@ def determine_parser(file_path, config):
         '.pptx': PPTParser(),
         '.txt': TXTParser(),
     }
-    
+
     if ext in parsers:
         return parsers[ext]
     else:
@@ -718,19 +718,19 @@ The `create` stage generates content from the parsed text.
 graph TD
     InputText[Input Text] --> Preprocessing[Text Preprocessing]
     Preprocessing --> Chunking[Split into Chunks]
-    
+
     Chunking --> GenerateSummary[Generate Summary]
     Chunking --> GenerateQA[Generate QA Pairs]
-    
+
     GenerateSummary --> ModelInference1[LLM Inference]
     GenerateQA --> ModelInference2[LLM Inference]
-    
+
     ModelInference1 --> Summary[Document Summary]
     ModelInference2 --> QAPairs[QA Pairs]
-    
+
     Summary --> Results[Results Object]
     QAPairs --> Results
-    
+
     Results --> SaveResults[Save to JSON]
 ```
 
@@ -743,7 +743,7 @@ def split_into_chunks(text: str, chunk_size: int = 4000, overlap: int = 200) -> 
     paragraphs = text.split("\n\n")
     chunks = []
     current_chunk = ""
-    
+
     for para in paragraphs:
         if len(current_chunk) + len(para) > chunk_size and current_chunk:
             chunks.append(current_chunk)
@@ -758,10 +758,10 @@ def split_into_chunks(text: str, chunk_size: int = 4000, overlap: int = 200) -> 
                 current_chunk += "\n\n" + para
             else:
                 current_chunk = para
-    
+
     if current_chunk:
         chunks.append(current_chunk)
-    
+
     return chunks
 ```
 
@@ -773,23 +773,23 @@ The `cleanup` stage filters content based on quality.
 graph TD
     InputJSON[Input JSON] --> LoadQAPairs[Load QA Pairs]
     LoadQAPairs --> BatchProcessing[Process in Batches]
-    
+
     BatchProcessing --> QualityPrompt[Apply Rating Prompt]
     QualityPrompt --> ModelInference[LLM Inference]
-    
+
     ModelInference --> ParseRatings[Parse Ratings with Enhanced Methods]
     ParseRatings -->|Success| ApplyThreshold[Apply Quality Threshold]
     ParseRatings -->|Failure| FallbackProcessing[Fallback to Individual Processing]
-    
+
     FallbackProcessing --> SinglePairRating[Rate Individual Pairs]
     SinglePairRating --> ApplyThreshold
-    
+
     ApplyThreshold --> FilteredPairs[Filtered QA Pairs]
     FilteredPairs --> QualityMetrics[Calculate Metrics]
-    
+
     FilteredPairs --> SaveResults[Save to JSON]
     QualityMetrics --> SaveResults
-    
+
     subgraph "Enhanced JSON Parsing"
         ParseRatings --> Method1[Method 1: Pretty-Printed JSON]
         ParseRatings --> Method2[Method 2: Code Block Extraction]
@@ -811,13 +811,13 @@ def curate_qa_pairs(input_path, output_path, threshold=None, api_base=None, mode
         data = json.load(f)
     qa_pairs = data.get("qa_pairs", [])
     summary = data.get("summary", "")
-    
+
     # Initialize LLM client
     client = LLMClient(config_path=config_path, api_base=api_base, model_name=model)
-    
+
     # Get configuration
     curate_config = get_curate_config(client.config)
-    
+
     # Allow environment variable to override batch size for debugging
     env_batch_size = os.environ.get('SDK_BATCH_SIZE')
     if env_batch_size and env_batch_size.isdigit():
@@ -826,18 +826,18 @@ def curate_qa_pairs(input_path, output_path, threshold=None, api_base=None, mode
     else:
         batch_size = curate_config.get("batch_size", 32)
         inference_batch = curate_config.get("inference_batch", 32)
-    
+
     # Process in batches with smart error handling
     batches = [qa_pairs[i:i+batch_size] for i in range(0, len(qa_pairs), batch_size)]
     for batch_start in range(0, len(all_messages), inference_batch):
         batch_responses = client.batch_completion(current_batch, temperature=rating_temperature)
-        
+
         # Process each response
         for j, response in enumerate(batch_responses):
             try:
                 # Pass original batch to enable fallback matching
                 rated_batch = parse_ratings(response, original_batch)
-                
+
                 # Process ratings
                 for pair in rated_batch:
                     if "rating" in pair:
@@ -848,7 +848,7 @@ def curate_qa_pairs(input_path, output_path, threshold=None, api_base=None, mode
                 # Attempt individual processing as fallback
                 if verbose:
                     print(f"Batch processing failed, trying individual items...")
-                    
+
                 # Process individual items in the batch as a fallback strategy
                 for item in original_batch:
                     try:
@@ -861,7 +861,7 @@ def curate_qa_pairs(input_path, output_path, threshold=None, api_base=None, mode
                     except Exception:
                         if verbose:
                             print(f"Failed to process individual item")
-                
+
     # Calculate metrics and return results
     return output_path
 ```
@@ -882,21 +882,21 @@ The `save-as` stage converts the content to different formats.
 graph TD
     InputJSON[Input JSON] --> LoadContent[Load Content]
     LoadContent --> FormatSelection{Format Selection}
-    
+
     FormatSelection -->|JSONL| JSONL[Convert to JSONL]
     FormatSelection -->|Alpaca| Alpaca[Convert to Alpaca]
     FormatSelection -->|FT| FT[Convert to Fine-Tuning]
     FormatSelection -->|ChatML| ChatML[Convert to ChatML]
-    
+
     JSONL --> StorageSelection{Storage Format}
     Alpaca --> StorageSelection
     FT --> StorageSelection
     ChatML --> StorageSelection
-    
+
     StorageSelection -->|JSON| SaveJSONFile[Save as JSON File]
     StorageSelection -->|HF Dataset| CreateHFDataset[Create HF Dataset]
     CreateHFDataset --> SaveArrow[Save in Arrow Format]
-    
+
     SaveJSONFile --> OutputFile[Output File]
     SaveArrow --> OutputDir[Output Directory]
 ```
@@ -908,7 +908,7 @@ def convert_format(input_path, output_path, format_type):
     # Load input file
     with open(input_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
-    
+
     # Extract QA pairs
     if "filtered_pairs" in data:
         qa_pairs = data["filtered_pairs"]
@@ -916,7 +916,7 @@ def convert_format(input_path, output_path, format_type):
         qa_pairs = data["qa_pairs"]
     else:
         raise ValueError("No QA pairs found in input file")
-    
+
     # Convert to requested format
     if format_type == "jsonl":
         return to_jsonl(qa_pairs, output_path)
@@ -936,24 +936,24 @@ def convert_format(input_path, output_path, format_type):
 
 ```python
 class LLMClient:
-    def __init__(self, 
+    def __init__(self,
                  config_path: Optional[Path] = None,
-                 api_base: Optional[str] = None, 
+                 api_base: Optional[str] = None,
                  model_name: Optional[str] = None,
                  max_retries: Optional[int] = None,
                  retry_delay: Optional[float] = None):
         """Initialize an OpenAI-compatible client that connects to a VLLM server"""
-    
-    def chat_completion(self, 
-                       messages: List[Dict[str, str]], 
-                       temperature: float = None, 
+
+    def chat_completion(self,
+                       messages: List[Dict[str, str]],
+                       temperature: float = None,
                        max_tokens: int = None,
                        top_p: float = None) -> str:
         """Generate a chat completion using the VLLM OpenAI-compatible API"""
-    
-    def batch_completion(self, 
-                        message_batches: List[List[Dict[str, str]]], 
-                        temperature: float = None, 
+
+    def batch_completion(self,
+                        message_batches: List[List[Dict[str, str]]],
+                        temperature: float = None,
                         max_tokens: int = None,
                         top_p: float = None) -> List[str]:
         """Process multiple message sets sequentially"""
@@ -963,29 +963,29 @@ class LLMClient:
 
 ```python
 class QAGenerator:
-    def __init__(self, 
+    def __init__(self,
                  client: LLMClient,
                  config_path: Optional[Path] = None):
         """Initialize the QA Generator with an LLM client and optional config"""
-    
+
     def generate_summary(self, document_text: str) -> str:
         """Generate a summary of the document"""
-    
-    def generate_qa_pairs(self, 
-                        document_text: str, 
-                        summary: str, 
+
+    def generate_qa_pairs(self,
+                        document_text: str,
+                        summary: str,
                         num_pairs: int = 25) -> List[Dict[str, str]]:
         """Generate QA pairs from the document"""
-    
-    def rate_qa_pairs(self, 
-                     qa_pairs: List[Dict[str, str]], 
-                     summary: str, 
+
+    def rate_qa_pairs(self,
+                     qa_pairs: List[Dict[str, str]],
+                     summary: str,
                      threshold: Optional[float] = None) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
         """Rate and filter QA pairs by quality"""
-    
-    def process_document(self, 
-                        document_text: str, 
-                        num_pairs: int = 25, 
+
+    def process_document(self,
+                        document_text: str,
+                        num_pairs: int = 25,
                         quality_threshold: Optional[float] = None) -> Dict[str, Any]:
         """Process a document to generate, rate, and format QA pairs"""
 ```
@@ -996,7 +996,7 @@ class QAGenerator:
 class Parser:
     def parse(self, file_path: str) -> str:
         """Parse a document into plain text"""
-        
+
     def save(self, content: str, output_path: str) -> None:
         """Save the extracted text to a file"""
 ```
@@ -1020,23 +1020,23 @@ def split_into_chunks(text: str, chunk_size: int = 4000, overlap: int = 200) -> 
 # LLM Output Processing
 def parse_qa_pairs(text: str) -> List[Dict[str, str]]:
     """Parse QA pairs from LLM output"""
-    
+
 def parse_ratings(text: str) -> List[Dict[str, Any]]:
     """Parse rated items from LLM output"""
-    
+
 def convert_to_conversation_format(qa_pairs: List[Dict[str, str]]) -> List[List[Dict[str, str]]]:
     """Convert QA pairs to conversation format"""
 
 # Format Conversion
 def to_jsonl(data: List[Dict[str, Any]], output_path: str) -> str:
     """Convert data to JSONL format and save to a file"""
-    
+
 def to_alpaca(qa_pairs: List[Dict[str, str]], output_path: str) -> str:
     """Convert QA pairs to Alpaca format and save"""
-    
+
 def to_fine_tuning(qa_pairs: List[Dict[str, str]], output_path: str) -> str:
     """Convert QA pairs to fine-tuning format and save"""
-    
+
 def to_chatml(qa_pairs: List[Dict[str, str]], output_path: str) -> str:
     """Convert QA pairs to ChatML format and save as JSONL"""
 ```
@@ -1239,12 +1239,12 @@ cleanup:
 prompts:
   qa_generation: |
     Create {num_pairs} question-answer pairs about technical documentation.
-    
+
     Focus on questions that:
     1. Test understanding of complex technical concepts
     2. Include code examples and implementation details
     3. Cover API usage patterns
-    
+
     Return only the JSON:
     [
       {{
@@ -1252,7 +1252,7 @@ prompts:
         "answer": "Technical answer with code if relevant."
       }}
     ]
-    
+
     Text:
     {text}
 ```
@@ -1273,16 +1273,16 @@ synthetic-data-kit -c technical_docs.yaml save-as data/cleaned/api_docs_cleaned.
 # Process all PDFs in a directory
 for file in documents/*.pdf; do
   filename=$(basename "$file" .pdf)
-  
+
   # Ingest
   synthetic-data-kit ingest "$file"
-  
+
   # Create QA pairs
   synthetic-data-kit create "data/output/${filename}.txt" -n 20
-  
+
   # Curate
   synthetic-data-kit curate "data/generated/${filename}_qa_pairs.json" -t 7.5
-  
+
   # Save as fine-tuning format
   synthetic-data-kit save-as "data/cleaned/${filename}_cleaned.json" -f ft
 done
@@ -1296,13 +1296,13 @@ done
 prompts:
   summary: |
     Create a comprehensive summary of this technical document.
-    
+
     Include:
     1. The main topic and purpose
     2. Key technical concepts and methodologies
     3. Important findings or conclusions
     4. System architecture or design patterns
-    
+
     Focus on extracting the most technically relevant information.
 ```
 
@@ -1312,15 +1312,15 @@ prompts:
 prompts:
   qa_generation: |
     You're an expert creating training data for a technical assistant.
-    
+
     From this text, create {num_pairs} question-answer pairs that:
     1. Focus on complex technical concepts
     2. Include implementation details and practical usage
     3. Cover both basic and advanced topics
     4. Represent realistic user queries
-    
+
     Each answer should be comprehensive yet concise, and include code examples where relevant.
-    
+
     Return as JSON:
     [
       {{
@@ -1328,7 +1328,7 @@ prompts:
         "answer": "X works in system Y by... For example: `code example`"
       }}
     ]
-    
+
     Text:
     {text}
 ```
@@ -1339,18 +1339,18 @@ prompts:
 prompts:
   qa_rating: |
     Evaluate these QA pairs for a technical assistant on a scale of 1-10.
-    
+
     Criteria:
     1. Technical accuracy (0-3 points)
     2. Completeness of answer (0-3 points)
     3. Relevance to practical usage (0-2 points)
     4. Clear explanations (0-2 points)
-    
+
     Return the original pairs with ratings added:
     [
       {"question": "...", "answer": "...", "rating": 8}
     ]
-    
+
     QA Pairs:
     {pairs}
 ```
@@ -1367,12 +1367,12 @@ import os
 
 class MarkdownParser:
     """Parser for Markdown files"""
-    
+
     def parse(self, file_path: str) -> str:
         """Parse a Markdown file into plain text"""
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
-            
+
         # Remove Markdown formatting
         # This is a simple example - you'd want more robust parsing
         import re
@@ -1383,9 +1383,9 @@ class MarkdownParser:
         content = re.sub(r'\*(.*?)\*', r'\1', content)
         # Remove links
         content = re.sub(r'\[(.*?)\]\(.*?\)', r'\1', content)
-        
+
         return content
-    
+
     def save(self, content: str, output_path: str) -> None:
         """Save the extracted text to a file"""
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -1404,7 +1404,7 @@ Update the parser selection in `core/ingest.py`:
 ```python
 def determine_parser(file_path, config):
     # ... existing code ...
-    
+
     ext = os.path.splitext(file_path)[1].lower()
     parsers = {
         '.pdf': PDFParser(),
@@ -1416,7 +1416,7 @@ def determine_parser(file_path, config):
         '.md': MarkdownParser(),  # Add the new parser
         '.markdown': MarkdownParser(),
     }
-    
+
     # ... rest of the function ...
 ```
 
@@ -1427,14 +1427,14 @@ Add a new converter function in `utils/format_converter.py`:
 ```python
 def to_custom_format(qa_pairs: List[Dict[str, str]], output_path: str) -> str:
     """Convert QA pairs to a custom format and save"""
-    
+
     # Create the custom format structure
     formatted_data = {
         "version": "1.0",
         "created": datetime.now().isoformat(),
         "items": []
     }
-    
+
     for pair in qa_pairs:
         formatted_data["items"].append({
             "input": {
@@ -1447,11 +1447,11 @@ def to_custom_format(qa_pairs: List[Dict[str, str]], output_path: str) -> str:
                 "source": "synthetic-data-kit"
             }
         })
-    
+
     # Save to file
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(formatted_data, f, indent=2)
-    
+
     return output_path
 ```
 
@@ -1460,10 +1460,10 @@ Update the format conversion in `core/save_as.py`:
 ```python
 def convert_format(input_path, output_path, format_type, config=None):
     # ... existing code ...
-    
+
     elif format_type == "custom":
         return to_custom_format(qa_pairs, output_path)
-    
+
     # ... rest of the function ...
 ```
 
@@ -1481,27 +1481,27 @@ from synthetic_data_kit.utils.config import get_prompt
 
 class COTGenerator:
     """Generates chain-of-thought reasoning examples"""
-    
+
     def __init__(self, client: LLMClient, config_path: Optional[str] = None):
         self.client = client
         self.config = client.config
-    
+
     def generate_cot_examples(self, document_text: str, num_examples: int = 5) -> List[Dict[str, Any]]:
         """Generate chain-of-thought reasoning examples"""
-        
+
         # Get the prompt template
         prompt_template = get_prompt(self.config, "cot_generation")
-        
+
         # Format the prompt
         prompt = prompt_template.format(
             num_examples=num_examples,
             text=document_text
         )
-        
+
         # Generate examples
         messages = [{"role": "system", "content": prompt}]
         response = self.client.chat_completion(messages)
-        
+
         # Parse response (simplified for example)
         examples = []
         if '[' in response and ']' in response:
@@ -1511,7 +1511,7 @@ class COTGenerator:
                 examples = json.loads(response[start:end])
             except:
                 print("Error parsing COT examples")
-        
+
         return examples
 ```
 
@@ -1521,12 +1521,12 @@ Add the corresponding prompt to `config.yaml`:
 prompts:
   cot_generation: |
     Generate {num_examples} chain-of-thought reasoning examples from this text.
-    
+
     Each example should have:
     1. A complex problem or question
     2. Step-by-step reasoning to solve it
     3. The final answer
-    
+
     Return as JSON:
     [
       {{
@@ -1535,7 +1535,7 @@ prompts:
         "answer": "Final answer"
       }}
     ]
-    
+
     Text:
     {text}
 ```
@@ -1545,23 +1545,23 @@ Update the `create` command to use the new generator:
 ```python
 def process_file(...):
     # ... existing code ...
-    
+
     elif content_type == "cot":
         from synthetic_data_kit.generators.cot_generator import COTGenerator
         generator = COTGenerator(client, config_path)
-        
+
         examples = generator.generate_cot_examples(
             document_text,
             num_examples=num_pairs  # Reuse the num_pairs parameter
         )
-        
+
         # Save output
         output_path = os.path.join(output_dir, f"{base_name}_cot_examples.json")
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump({"cot_examples": examples}, f, indent=2)
-        
+
         return output_path
-    
+
     # ... rest of the function ...
 ```
 
@@ -1599,19 +1599,19 @@ The toolkit includes a robust, multi-method JSON parsing system for handling LLM
 ```python
 def parse_ratings(text: str, original_items: List[Dict[str, str]] = None) -> List[Dict[str, Any]]:
     """Parse rated items from LLM output with enhanced error recovery"""
-    
+
     # Method 1: Comprehensive approach for pretty-printed JSON
     # Handles indentation and newlines in JSON from LLMs
-    
+
     # Method 2: Code block extraction
     # Finds and parses JSON inside markdown code blocks
-    
+
     # Method 3: Regex-based extraction
     # Uses pattern matching to find JSON-like structures
-    
+
     # Method 4: JSON5 parsing (more lenient)
     # Applies a more forgiving parser if available
-    
+
     # Method 5: Pattern matching with original items
     # Uses original QA pairs to extract ratings when all else fails
 ```

@@ -11,16 +11,16 @@
             </div>
             <div class="card-body">
                 <p>Parse documents (PDF, HTML, YouTube, DOCX, PPT, TXT) into clean text that can be used for content generation.</p>
-                
+
                 <form method="POST" class="mt-4 loading-form" enctype="multipart/form-data" data-loading-message="Parsing document... Please wait">
                     {{ form.csrf_token }}
-                    
+
                     <div class="mb-3">
                         <label for="input_type" class="form-label">{{ form.input_type.label }}</label>
                         {{ form.input_type(class="form-select", id="input_type_selector") }}
                         <div class="form-text">Select how you want to provide your document.</div>
                     </div>
-                    
+
                     <div id="upload_file_div" class="mb-3">
                         <label for="upload_file" class="form-label">{{ form.upload_file.label }}</label>
                         {{ form.upload_file(class="form-control") }}
@@ -33,7 +33,7 @@
                         {% endif %}
                         <div class="form-text">Supported formats: PDF, HTML, DOCX, PPT, TXT.</div>
                     </div>
-                    
+
                     <div id="input_path_div" class="mb-3" style="display: none;">
                         <label for="input_path" class="form-label">{{ form.input_path.label }}</label>
                         {{ form.input_path(class="form-control", placeholder="Enter file path or URL") }}
@@ -46,7 +46,7 @@
                         {% endif %}
                         <div id="path_help_text" class="form-text">Enter the path to a local file or URL to parse.</div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="output_name" class="form-label">{{ form.output_name.label }}</label>
                         {{ form.output_name(class="form-control", placeholder="Leave blank to use original name") }}
@@ -59,12 +59,12 @@
                         {% endif %}
                         <div class="form-text">Optional. Specify a custom filename for the output text file.</div>
                     </div>
-                    
+
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                         {{ form.submit(class="btn btn-primary") }}
                     </div>
                 </form>
-                
+
                 <div class="mt-5">
                     <h4>Supported Document Types</h4>
                     <div class="row">
@@ -123,7 +123,7 @@
                                     </li>
                                 </ul>
                             </div>
-                            
+
                             <div class="card">
                                 <div class="card-header">Example URLs</div>
                                 <ul class="list-group list-group-flush">
@@ -148,11 +148,11 @@
         const uploadFileDiv = document.getElementById('upload_file_div');
         const inputPathDiv = document.getElementById('input_path_div');
         const pathHelpText = document.getElementById('path_help_text');
-        
+
         // Function to update form display based on selected input type
         function updateFormDisplay() {
             const selectedValue = inputTypeSelector.value;
-            
+
             // Hide/show appropriate fields based on selection
             if (selectedValue === 'file') {
                 uploadFileDiv.style.display = 'block';
@@ -160,7 +160,7 @@
             } else {
                 uploadFileDiv.style.display = 'none';
                 inputPathDiv.style.display = 'block';
-                
+
                 // Update help text based on URL or path selection
                 if (selectedValue === 'url') {
                     pathHelpText.textContent = 'Enter a URL to parse. Supports web pages and YouTube videos.';
@@ -169,10 +169,10 @@
                 }
             }
         }
-        
+
         // Initial setup
         updateFormDisplay();
-        
+
         // Add event listener for changes
         inputTypeSelector.addEventListener('change', updateFormDisplay);
     });

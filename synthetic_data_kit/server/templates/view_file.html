@@ -84,7 +84,7 @@
                                     <h3>QA Pairs</h3>
                                     <p class="text-muted">Total: {{ content.qa_pairs|length }} pairs</p>
                                 </div>
-                                
+
                                 {% for qa_pair in content.qa_pairs %}
                                 <div class="qa-pair mb-4 p-3 border rounded" id="qa-pair-{{ loop.index0 }}">
                                     <div class="question mb-2"><strong>Question:</strong> {{ qa_pair.question }}</div>
@@ -110,7 +110,7 @@
                                 {% endfor %}
                             </div>
                             {% endif %}
-                            
+
                             <!-- Chain of Thought examples section -->
                             {% if is_cot_examples and content.cot_examples is defined %}
                             <div class="cot-container mb-4">
@@ -118,7 +118,7 @@
                                     <h3>Chain of Thought Examples</h3>
                                     <p class="text-muted">Total: {{ content.cot_examples|length }} examples</p>
                                 </div>
-                                
+
                                 {% for example in content.cot_examples %}
                                 <div class="cot-example mb-4 p-3 border rounded" id="cot-example-{{ loop.index0 }}">
                                     <div class="question mb-2"><strong>Question:</strong> {{ example.question }}</div>
@@ -142,7 +142,7 @@
                                 {% endfor %}
                             </div>
                             {% endif %}
-                            
+
                             <!-- Conversations section -->
                             {% if has_conversations and content.conversations is defined %}
                             <div class="conversations-container mb-4">
@@ -150,7 +150,7 @@
                                     <h3>Conversations</h3>
                                     <p class="text-muted">Total: {{ content.conversations|length }} conversations</p>
                                 </div>
-                                
+
                                 {% for conversation in content.conversations %}
                                 <div class="conversation mb-4 p-3 border rounded" id="conversation-{{ loop.index0 }}">
                                     <h4 class="mb-3">Conversation {{ loop.index }}</h4>
@@ -175,7 +175,7 @@
                                 {% endfor %}
                             </div>
                             {% endif %}
-                            
+
                             <!-- Warning if no recognized format -->
                             {% if file_type == "json" and not is_qa_pairs and not is_cot_examples and not has_conversations %}
                             <div class="alert alert-warning">
@@ -216,25 +216,25 @@
     // Store the file data in a JavaScript object
     const fileData = {{ content|tojson }};
     const filePath = "{{ file_path }}";
-    
+
     document.addEventListener('DOMContentLoaded', function() {
         const container = document.getElementById('jsoneditor');
         let editors = {};
-        
+
         // Create options for the JSON editor
         const options = {
             mode: 'view',
             modes: ['view', 'preview'],
             sortObjectKeys: false
         };
-        
+
         // Create the JSON editor for the full file view
         if (container) {
             const editor = new JSONEditor(container, options);
             editor.set(fileData);
             container.style.height = '600px';
         }
-        
+
         // Handle edit button clicks
         document.querySelectorAll('.edit-item-btn').forEach(button => {
             button.addEventListener('click', function() {
@@ -242,7 +242,7 @@
                 const itemIndex = parseInt(this.dataset.itemIndex);
                 const editorId = `json-editor-${itemType === 'qa_pairs' ? 'qa' : itemType === 'cot_examples' ? 'cot' : 'conv'}-${itemIndex}`;
                 const editorContainer = document.getElementById(editorId);
-                
+
                 // Find the parent element and the editor div
                 let parentElement;
                 if (itemType === 'qa_pairs') {
@@ -252,24 +252,24 @@
                 } else if (itemType === 'conversations') {
                     parentElement = document.getElementById(`conversation-${itemIndex}`);
                 }
-                
+
                 if (!parentElement) {
                     console.error('Parent element not found');
                     return;
                 }
-                
+
                 const itemEditorDiv = parentElement.querySelector('.item-editor');
                 if (!itemEditorDiv) {
                     console.error('Editor container not found');
                     return;
                 }
-                
+
                 // Show the editor
                 itemEditorDiv.style.display = 'block';
-                
+
                 // Get the data based on the item type
                 let itemData = null;
-                
+
                 if (itemType === 'qa_pairs' && fileData.qa_pairs) {
                     itemData = fileData.qa_pairs[itemIndex];
                 } else if (itemType === 'cot_examples' && fileData.cot_examples) {
@@ -277,12 +277,12 @@
                 } else if (itemType === 'conversations' && fileData.conversations) {
                     itemData = fileData.conversations[itemIndex];
                 }
-                
+
                 if (!itemData) {
                     console.error('Item data not found');
                     return;
                 }
-                
+
                 // Create editor if it doesn't exist yet
                 if (!editors[editorId]) {
                     const editorOptions = {
@@ -292,12 +292,12 @@
                     };
                     editors[editorId] = new JSONEditor(editorContainer, editorOptions);
                 }
-                
+
                 // Set the data
                 editors[editorId].set(itemData);
             });
         });
-        
+
         // Handle cancel button clicks
         document.querySelectorAll('.cancel-edit-btn').forEach(button => {
             button.addEventListener('click', function() {
@@ -308,18 +308,18 @@
                 }
             });
         });
-        
+
         // Handle save button clicks
         document.querySelectorAll('.save-edit-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const itemType = this.dataset.itemType;
                 const itemIndex = parseInt(this.dataset.itemIndex);
                 const editorId = `json-editor-${itemType === 'qa_pairs' ? 'qa' : itemType === 'cot_examples' ? 'cot' : 'conv'}-${itemIndex}`;
-                
+
                 try {
                     // Get the edited data
                     const itemData = editors[editorId].get();
-                    
+
                     // Save the changes
                     fetch(`/api/edit_item/${filePath}`, {
                         method: 'POST',
@@ -350,13 +350,13 @@
                 }
             });
         });
-        
+
         // Handle delete button clicks
         document.querySelectorAll('.delete-item-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const itemType = this.dataset.itemType;
                 const itemIndex = parseInt(this.dataset.itemIndex);
-                
+
                 // Find the parent element
                 let parentElement;
                 if (itemType === 'qa_pairs') {
@@ -366,12 +366,12 @@
                 } else if (itemType === 'conversations') {
                     parentElement = document.getElementById(`conversation-${itemIndex}`);
                 }
-                
+
                 if (!parentElement) {
                     console.error('Parent element not found');
                     return;
                 }
-                
+
                 if (confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
                     // Send delete request
                     fetch(`/api/delete_item/${filePath}`, {

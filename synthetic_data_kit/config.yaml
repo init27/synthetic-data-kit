@@ -10,7 +10,7 @@ paths:
     docx: "data/docx"
     ppt: "data/ppt"
     txt: "data/txt"
-  
+
   # Output locations
   output:
     parsed: "data/output"      # Where parsed text files are saved
@@ -30,7 +30,7 @@ vllm:
   model: "meta-llama/Llama-3.3-70B-Instruct" # Default model to use
   max_retries: 3                       # Number of retries for API calls
   retry_delay: 1.0                     # Initial delay between retries (seconds)
-  
+
 # API endpoint configuration
 api-endpoint:
   api_base: "https://api.together.xyz/v1"                         # Optional base URL for API endpoint
@@ -72,16 +72,16 @@ prompts:
   # Summary generation prompt
   summary: |
     Summarize this document in 3-5 sentences, focusing on the main topic and key concepts.
-  
+
   # QA pair generation prompt
   qa_generation: |
     Create {num_pairs} question-answer pairs from this text for LLM training.
-    
+
     Rules:
     1. Questions must be about important facts in the text
     2. Answers must be directly supported by the text
     3. Return JSON format only:
-    
+
     [
       {{
         "question": "Question 1?",
@@ -92,10 +92,10 @@ prompts:
         "answer": "Answer 2."
       }}
     ]
-    
+
     Text:
     {text}
-  
+
   # QA pair rating prompt
   qa_rating: |
     Rate each question-answer pair on a scale from 1-10, based on:
@@ -103,36 +103,36 @@ prompts:
     - Relevance (0-2): relevance to content
     - Clarity (0-2): clear language
     - Usefulness (0-3): value for model learning
-    
+
     YOU MUST RETURN A VALID JSON OBJECT OR ARRAY WITH THIS EXACT SCHEMA:
     {{
       "question": "Exact question text",
       "answer": "Exact answer text",
       "rating": 8
     }}
-    
+
     OR FOR MULTIPLE PAIRS:
     [
       {{"question": "Q1", "answer": "A1", "rating": 8}},
       {{"question": "Q2", "answer": "A2", "rating": 9}}
     ]
-    
+
     *** YOUR RESPONSE MUST BE VALID JSON AND NOTHING ELSE - NO EXPLANATION, NO MARKDOWN ***
-    
+
     QA pairs to rate:
     {pairs}
-    
+
   # Chain of Thought generation prompt
   cot_generation: |
     Create {num_examples} complex reasoning examples from this text that demonstrate chain-of-thought thinking.
-    
+
     Each example should have:
     1. A challenging question that requires step-by-step reasoning
     2. Detailed reasoning steps that break down the problem
     3. A concise final answer
-    
+
     Return JSON format only:
-    
+
     [
       {{
         "question": "Complex question about the text?",
@@ -145,18 +145,18 @@ prompts:
         "answer": "Final answer drawn from the reasoning."
       }}
     ]
-    
+
     Text:
     {text}
-  
+
   # Chain of Thought enhancement prompt
   cot_enhancement: |
     You are an expert reasoning assistant. Your task is to enhance the given conversations by adding chain-of-thought reasoning.
-    
+
     For each conversation, add detailed step-by-step reasoning to the assistant's responses while preserving the original answer.
-    
+
     {include_simple_steps} = Whether to add reasoning to simple responses too. If false, only add reasoning to complex responses.
-    
+
     Return the enhanced conversations as a JSON array matching this format:
     [
       [
@@ -170,6 +170,6 @@ prompts:
         {{"role": "assistant", "content": "Let me work through this:\n\n1. I'll start by...\n2. Next...\n\nIn conclusion, [original answer]"}}
       ]
     ]
-    
+
     Original conversations:
     {conversations}

@@ -199,12 +199,12 @@ format:
 prompts:
   qa_generation: |
     Create {num_pairs} high-quality question-answer pairs about this document.
-    
+
     Focus on questions that:
     1. Test understanding of key concepts
     2. Include important details and examples
     3. Cover main topics comprehensively
-    
+
     Return only the JSON:
     [
       {{
@@ -212,7 +212,7 @@ prompts:
         "answer": "Detailed answer."
       }}
     ]
-    
+
     Text:
     {text}
 ```
@@ -258,7 +258,7 @@ For batch processing, you can use a shell script:
 # Process all PDFs in a directory
 for file in data/pdf/*.pdf; do
   filename=$(basename "$file" .pdf)
-  
+
   # Full pipeline with custom config
   synthetic-data-kit -c custom_config.yaml ingest "$file"
   synthetic-data-kit -c custom_config.yaml create "data/output/${filename}.txt" -n 20

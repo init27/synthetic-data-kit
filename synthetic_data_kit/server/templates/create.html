@@ -20,10 +20,10 @@
                         <li><strong>CoT Enhancement:</strong> Enhance existing tool-use conversations with Chain of Thought reasoning</li>
                     </ul>
                 </div>
-                
+
                 <form method="POST" class="loading-form" data-loading-message="Generating content with LLM... This may take a minute or two">
                     {{ form.csrf_token }}
-                    
+
                     <div class="mb-3">
                         <label for="input_file" class="form-label">{{ form.input_file.label }}</label>
                         {% if input_files %}
@@ -50,7 +50,7 @@
                         {% endif %}
                         <div class="form-text">Enter the path to the text file you want to process.</div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="content_type" class="form-label">{{ form.content_type.label }}</label>
                         {{ form.content_type(class="form-select") }}
@@ -63,7 +63,7 @@
                         {% endif %}
                         <div class="form-text">Select the type of content you want to generate.</div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="num_pairs" class="form-label">{{ form.num_pairs.label }}</label>
                         {{ form.num_pairs(class="form-control", placeholder="Number of QA pairs to generate") }}
@@ -76,7 +76,7 @@
                         {% endif %}
                         <div class="form-text">Number of items to generate (applies to QA pairs and some other content types).</div>
                     </div>
-                    
+
                     <div class="accordion" id="advancedOptions">
                         <div class="accordion-item">
                             <h2 class="accordion-header" id="headingAdvanced">
@@ -91,7 +91,7 @@
                                         {{ form.model(class="form-control", placeholder="Leave blank for default model") }}
                                         <div class="form-text">Specify a model name to use instead of the default.</div>
                                     </div>
-                                    
+
                                     <div class="mb-3">
                                         <label for="api_base" class="form-label">{{ form.api_base.label }}</label>
                                         {{ form.api_base(class="form-control", placeholder="Leave blank for default API URL") }}
@@ -101,7 +101,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                         {{ form.submit(class="btn btn-primary") }}
                     </div>

@@ -27,16 +27,16 @@ prompts:
     Think out loud and max out your tokens when adding CoT
 
     For example, if you see:
-    
+
     "from": "assistant",
     "value": "<tool>[Some API(param=\"value\")]</tool>"
-    
+
     Change it to:
-    
+
     "from": "assistant",
-    "value": "Let me think about this request. I need to gather X information using Tool Y. 
-    To do this, I need to set the parameter to 'value' because of reason Z. 
+    "value": "Let me think about this request. I need to gather X information using Tool Y.
+    To do this, I need to set the parameter to 'value' because of reason Z.
     <tool>[Some API(param=\"value\")]</tool>"
-    
+
     BEGIN WORK NOW. Enhance the assistant's messages with detailed Chain of Thought reasoning before each tool call:
     {conversations}

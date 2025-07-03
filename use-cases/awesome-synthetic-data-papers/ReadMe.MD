@@ -19,7 +19,7 @@
 
 ```mermaid
 graph LR
-    LIMA["LIMA<br/><i>1K carefully curated</i>"] 
+    LIMA["LIMA<br/><i>1K carefully curated</i>"]
     SelfAlign["Self-Alignment<br/><i>Instruction Backtranslation</i>"]
     Textbooks["Textbooks Are All You Need<br/><i>High-quality structured data</i>"]
     Distilling["Distilling Step-by-Step<br/><i>Rationale extraction</i>"]
@@ -27,7 +27,7 @@ graph LR
     Toolformer["Toolformer<br/><i>Self-supervised API learning</i>"]
     Gorilla["Gorilla<br/><i>Retrieval-aware training</i>"]
     ToolLLM["ToolLLM<br/><i>DFSDT + 16K APIs</i>"]
-    
+
     LIMA -->|"Quality Focus"| SelfAlign
     LIMA -->|"Curation Philosophy"| Textbooks
     SelfAlign -->|"Add CoT"| Distilling
@@ -36,11 +36,11 @@ graph LR
     Toolformer -->|"Add Documentation"| Gorilla
     Gorilla -->|"Multi-step + Filtering"| ToolLLM
     LIMA -.->|"Quality Principles"| ToolLLM
-    
+
     classDef quality fill:#1565c0,stroke:#e3f2fd,stroke-width:3px,color:#fff
     classDef efficiency fill:#7b1fa2,stroke:#f3e5f5,stroke-width:3px,color:#fff
     classDef tools fill:#f57c00,stroke:#fff3e0,stroke-width:3px,color:#fff
-    
+
     class LIMA,SelfAlign,Textbooks quality
     class Distilling,TinyStories efficiency
     class Toolformer,Gorilla,ToolLLM tools
@@ -59,30 +59,30 @@ A curated list of papers on synthetic data generation for training language mode
 flowchart TD
     Start(["What's your starting point?"])
     Start --> DataCheck{{"Have labeled data?"}}
-    
+
     DataCheck -->|"❌ No"| NoData["<b>Instruction Backtranslation</b><br/><i>Bootstrap from documents</i>"]
     DataCheck -->|"✅ Yes, but limited<br/><i>< 1K examples</i>"| Limited["<b>LIMA approach</b><br/><i>Quality > Quantity</i>"]
     DataCheck -->|"✅ Yes, plenty<br/><i>10K+ examples</i>"| Plenty{{"Need reasoning?"}}
-    
+
     Plenty -->|"✅ Yes"| Reasoning["<b>Distilling Step-by-Step</b><br/><i>Extract CoT rationales</i>"]
     Plenty -->|"❌ No"| Tasks{{"Building for <br/>new tasks?"}}
-    
+
     Tasks -->|"Teaching<br/>new domain"| Domain{{"Model size?"}}
     Tasks -->|" API/Tool use"| ToolPath["<b>Tool-use progression:</b><br/>⚡ Toolformer<br/>↓<br/>Gorilla<br/>↓<br/> ToolLLM"]
-    
+
     Domain -->|"< 1B params"| Tiny[" <b>TinyStories approach</b><br/><i>Progressive curriculum</i>"]
     Domain -->|"Bigger models"| Textbook[" <b>Textbooks approach</b><br/><i>Structured + filtered</i>"]
-    
+
     style Start fill:#673ab7,stroke:#fff,stroke-width:3px,color:#fff
     style DataCheck fill:#ff6b6b,stroke:#fff,stroke-width:2px,color:#fff
     style Plenty fill:#ff6b6b,stroke:#fff,stroke-width:2px,color:#fff
     style Tasks fill:#ff6b6b,stroke:#fff,stroke-width:2px,color:#fff
     style Domain fill:#ff6b6b,stroke:#fff,stroke-width:2px,color:#fff
-    
+
     classDef approach fill:#4caf50,stroke:#fff,stroke-width:3px,color:#fff
     classDef reasoning fill:#2196f3,stroke:#fff,stroke-width:3px,color:#fff
     classDef tools fill:#ff9800,stroke:#fff,stroke-width:3px,color:#fff
-    
+
     class NoData,Limited,Tiny,Textbook approach
     class Reasoning reasoning
     class ToolPath tools
@@ -264,36 +264,36 @@ prompts:
   # Custom prompt for generating simple stories
   qa_generation: |
     Create {num_pairs} simple stories for teaching basic language skills.
-    
+
     Requirements:
     1. Use only the 1500 most common English words
     2. Keep sentences short and simple (5-8 words per sentence)
     3. Each story should teach a basic concept (colors, numbers, animals, etc.)
     4. Include a simple question at the end that tests understanding
-    
+
     Format each as a question-answer pair:
-    
+
     [
       {
         "question": "Read this story and answer the question at the end: [STORY WITH QUESTION]",
         "answer": "Simple, clear answer using only basic vocabulary"
       }
     ]
-    
+
     Text:
     {text}
 
   # Custom prompt for progressive difficulty curation
   qa_rating: |
     Rate these educational stories on a scale of 1-10 based on:
-    
+
     - Simplicity (0-3): Uses only basic vocabulary and simple sentences
     - Educational value (0-3): Teaches a useful concept clearly
     - Engagement (0-2): Would hold a young learner's attention
     - Progression (0-2): Builds on fundamental concepts appropriately
-    
+
     Also add a "difficulty" field rated 1-5 (1=simplest, 5=most advanced)
-    
+
     Return as valid JSON:
     [
       {
@@ -303,7 +303,7 @@ prompts:
         "difficulty": 2
       }
     ]
-    
+
     Stories to rate:
     {pairs}
 EOF
@@ -361,13 +361,13 @@ prompts:
   # Custom prompt for generating textbook-quality content
   qa_generation: |
     Create {num_pairs} high-quality textbook-style examples that explain important concepts clearly.
-    
+
     Requirements:
     1. Structure each example as a concept explanation followed by exercise questions
     2. Include clear definitions, examples, and step-by-step reasoning
     3. Ensure explanations build on fundamental concepts before introducing complex ones
     4. Use precise, unambiguous language as found in high-quality textbooks
-    
+
     Format as question-answer pairs:
     [
       {
@@ -375,26 +375,26 @@ prompts:
         "answer": "Detailed textbook-style explanation with step-by-step solution"
       }
     ]
-    
+
     Text:
     {text}
 
   # Custom prompt for textbook-quality rating
   qa_rating: |
     Rate these educational examples on a scale of 1-10 based on:
-    
+
     - Clarity (0-3): Is the explanation clear, precise, and unambiguous?
     - Pedagogical value (0-3): Does it build concepts progressively?
     - Accuracy (0-2): Is all information factually correct?
     - Exercise quality (0-2): Do exercises reinforce the concepts effectively?
-    
+
     Rate EXTREMELY strictly - only the highest quality examples should score above 8.
-    
+
     Return valid JSON with ratings:
     [
       {"question": "Original question", "answer": "Original answer", "rating": 9}
     ]
-    
+
     Examples to rate:
     {pairs}
 EOF
@@ -461,47 +461,47 @@ prompts:
   # Custom rating prompt for API documentation quality
   qa_rating: |
     Rate these API usage examples on a scale from 1-10 based on:
-    
+
     - Documentation quality (0-3): Is the API documentation clear and complete?
     - API call correctness (0-3): Is the syntax and usage correct?
     - Explanation quality (0-2): Is the explanation helpful and accurate?
     - Parameter coverage (0-2): Are parameters well explained and correctly used?
-    
+
     Immediately reject any example where the API call doesn't match the documentation.
-    
+
     Return valid JSON with ratings:
     [
       {"question": "Original question", "answer": "Original answer with documentation", "rating": 8}
     ]
-    
+
     Examples to rate:
     {pairs}
-    
+
   # Custom prompt for enhancing examples with documentation
   cot_enhancement: |
     You are enhancing API usage examples by adding detailed documentation.
-    
+
     For each conversation, add the following to the assistant's responses:
     1. Relevant API documentation with syntax and parameter descriptions
     2. Clear explanation of why this API is appropriate
     3. Description of what each parameter does
-    
+
     Return the enhanced conversations as a JSON array matching this format:
     [
       {
-        "role": "system", 
+        "role": "system",
         "content": "System message"
       },
       {
-        "role": "user", 
+        "role": "user",
         "content": "How do I use function X?"
       },
       {
-        "role": "assistant", 
+        "role": "assistant",
         "content": "Here's the documentation for this API:\n\n```\nfunction X(param1, param2) -> return_type\n  param1: description of param1\n  param2: description of param2\n  returns: what is returned\n```\n\nHere's how you can use it:\n\n```python\nresult = X(value1, value2)\n```\n\nThis works because [detailed explanation]..."
       }
     ]
-    
+
     Original conversations:
     {conversations}
 EOF

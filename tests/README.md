@@ -80,12 +80,12 @@ When adding new features or fixing bugs, please add appropriate tests. Follow th
 def test_my_feature():
     """Test description."""
     # Setup - create any test data or mock objects
-    
+
     # Mock dependencies
     with patch("some.dependency", return_value=mock_value):
         # Exercise - call the function you're testing
         result = my_module.my_function()
-        
+
         # Verify - check the result meets expectations
         assert result == expected_value
 ```
