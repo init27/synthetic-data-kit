@@ -4,14 +4,18 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   test-pr:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
         cache: 'pip'
@@ -23,8 +27,8 @@ jobs:
 
     - name: Lint code
       run: |
-        black --check synthetic_data_kit tests
-        isort --check-only --profile black synthetic_data_kit tests
+        ruff check synthetic_data_kit tests
+        ruff format --check synthetic_data_kit tests
 
     - name: Run tests
       env:
@@ -41,7 +45,7 @@ jobs:
         pytest --cov=synthetic_data_kit --cov-report=term-missing tests/
         
     - name: Comment PR with Results
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       if: always()
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}

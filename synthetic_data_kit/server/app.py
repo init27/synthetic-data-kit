@@ -5,19 +5,16 @@ Flask application for the Synthetic Data Kit web interface.
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
 
-import flask
 from flask import Flask, abort, flash, jsonify, redirect, render_template, request, url_for
 from flask_wtf import FlaskForm
-from wtforms import FileField, IntegerField, SelectField, StringField, SubmitField, TextAreaField
+from wtforms import FileField, IntegerField, SelectField, StringField, SubmitField
 from wtforms.validators import DataRequired
-from wtforms.validators import Optional as OptionalValidator
 
 from synthetic_data_kit.core.create import process_file
 from synthetic_data_kit.core.curate import curate_qa_pairs
 from synthetic_data_kit.core.ingest import process_file as ingest_process_file
-from synthetic_data_kit.utils.config import get_llm_provider, get_path_config, load_config
+from synthetic_data_kit.utils.config import get_llm_provider, load_config
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.urandom(24)
@@ -236,7 +233,7 @@ def view_file(file_path):
 
     if full_path.suffix.lower() == ".json":
         try:
-            with open(full_path, "r") as f:
+            with open(full_path) as f:
                 file_content = json.load(f)
             file_type = "json"
 
@@ -246,9 +243,9 @@ def view_file(file_path):
             has_conversations = "conversations" in file_content
             has_summary = "summary" in file_content
 
-        except Exception as e:
+        except Exception:
             # If JSON parsing fails, treat as text
-            with open(full_path, "r") as f:
+            with open(full_path) as f:
                 file_content = f.read()
             file_type = "text"
             is_qa_pairs = False
@@ -257,7 +254,7 @@ def view_file(file_path):
             has_summary = False
     else:
         # Read as text
-        with open(full_path, "r") as f:
+        with open(full_path) as f:
             file_content = f.read()
         file_type = "text"
         is_qa_pairs = False
@@ -379,7 +376,7 @@ def qa_json(file_path):
         abort(404)
 
     try:
-        with open(full_path, "r") as f:
+        with open(full_path) as f:
             data = json.load(f)
         return jsonify(data)
     except:
@@ -405,7 +402,7 @@ def edit_item(file_path):
             return jsonify({"success": False, "message": "Missing required parameters"}), 400
 
         # Read the file
-        with open(full_path, "r") as f:
+        with open(full_path) as f:
             file_content = json.load(f)
 
         # Update the item
@@ -454,7 +451,7 @@ def delete_item(file_path):
             return jsonify({"success": False, "message": "Missing required parameters"}), 400
 
         # Read the file
-        with open(full_path, "r") as f:
+        with open(full_path) as f:
             file_content = json.load(f)
 
         # Delete the item

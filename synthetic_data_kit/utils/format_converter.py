@@ -6,8 +6,7 @@
 # Utils for format conversions
 import json
 import os
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 
 def to_jsonl(data: List[Dict[str, Any]], output_path: str) -> str:

@@ -6,10 +6,8 @@
 # Logic for saving file format
 
 import concurrent.futures
-import glob
 import json
 import os
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from synthetic_data_kit.utils.format_converter import (
@@ -19,7 +17,6 @@ from synthetic_data_kit.utils.format_converter import (
     to_hf_dataset,
     to_jsonl,
 )
-from synthetic_data_kit.utils.llm_processing import convert_to_conversation_format
 
 
 def convert_format(
@@ -42,7 +39,7 @@ def convert_format(
         Path to the output file or directory
     """
     # Load input file
-    with open(input_path, "r", encoding="utf-8") as f:
+    with open(input_path, encoding="utf-8") as f:
         data = json.load(f)
 
     # Extract data based on known structures

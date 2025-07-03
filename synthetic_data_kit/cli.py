@@ -12,7 +12,6 @@ from typing import Optional
 import requests
 import typer
 from rich.console import Console
-from rich.table import Table
 
 from synthetic_data_kit.core.context import AppContext
 from synthetic_data_kit.server.app import run_server
@@ -99,7 +98,7 @@ def system_check(
         model = api_endpoint_config.get("model")
 
         # Check API endpoint access
-        with console.status(f"Checking API endpoint access..."):
+        with console.status("Checking API endpoint access..."):
             try:
                 # Try to import OpenAI
                 try:
@@ -121,7 +120,7 @@ def system_check(
                     client = OpenAI(**client_kwargs)
                     # Try a simple models list request to check connectivity
                     models = client.models.list()
-                    console.print(f" API endpoint access confirmed", style="green")
+                    console.print(" API endpoint access confirmed", style="green")
                     if api_base:
                         console.print(f"Using custom API base: {api_base}", style="green")
                     console.print(f"Default model: {model}", style="green")

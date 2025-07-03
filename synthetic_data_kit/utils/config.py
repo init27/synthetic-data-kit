@@ -5,7 +5,6 @@
 # the root directory of this source tree.
 # Config Utilities
 import os
-from pathlib import Path
 from typing import Any, Dict, Optional
 
 import yaml
@@ -42,7 +41,7 @@ def load_config(config_path: Optional[str] = None) -> Dict[str, Any]:
         raise FileNotFoundError(f"Configuration file not found at {config_path}")
 
     print(f"Loading config from: {config_path}")
-    with open(config_path, "r") as f:
+    with open(config_path) as f:
         config = yaml.safe_load(f)
 
     # Debug: Print LLM provider if it exists

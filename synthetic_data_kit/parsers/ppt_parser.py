@@ -6,7 +6,6 @@
 # PPTX parser logic
 
 import os
-from typing import Any, Dict
 
 
 class PPTParser:
@@ -35,7 +34,7 @@ class PPTParser:
 
         for i, slide in enumerate(prs.slides):
             slide_text = []
-            slide_text.append(f"--- Slide {i+1} ---")
+            slide_text.append(f"--- Slide {i + 1} ---")
 
             # Get slide title
             if slide.shapes.title and slide.shapes.title.text:

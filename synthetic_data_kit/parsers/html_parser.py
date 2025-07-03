@@ -6,8 +6,6 @@
 # HTML Parsers
 
 import os
-from typing import Any, Dict
-from urllib.parse import urlparse
 
 import requests
 
@@ -39,7 +37,7 @@ class HTMLParser:
             html_content = response.text
         else:
             # It's a local file, read it
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 html_content = f.read()
 
         # Parse HTML and extract text

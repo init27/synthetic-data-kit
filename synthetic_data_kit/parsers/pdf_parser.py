@@ -5,7 +5,6 @@
 # the root directory of this source tree.
 # PDF parser logic
 import os
-from typing import Any, Dict
 
 
 class PDFParser:

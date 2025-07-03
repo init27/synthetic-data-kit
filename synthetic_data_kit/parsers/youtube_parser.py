@@ -6,7 +6,6 @@
 # Download and save the transcript
 
 import os
-from typing import Any, Dict
 
 
 class YouTubeParser:

@@ -5,11 +5,10 @@
 # the root directory of this source tree.
 # Generate the content: CoT/QA/Summary Datasets
 import concurrent.futures
-import glob
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 from synthetic_data_kit.generators.qa_generator import QAGenerator
 from synthetic_data_kit.generators.vqa_generator import VQAGenerator
@@ -19,7 +18,7 @@ from synthetic_data_kit.utils.config import get_generation_config
 
 def read_json(file_path):
     # Read the file
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         document_text = f.read()
     return document_text
 
@@ -183,7 +182,7 @@ def process_file(
 
         # Instead of parsing as text, load the file as JSON with conversations
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 data = json.load(f)
 
             # Handle different dataset formats
@@ -264,7 +263,7 @@ def process_file(
                         # Nested bug
                         if enhanced_messages and isinstance(enhanced_messages[0], list):
                             if verbose:
-                                print(f"Debug - Flattening nested array response")
+                                print("Debug - Flattening nested array response")
                             enhanced_messages = enhanced_messages[0]
 
                     # Create enhanced conversation with same structure

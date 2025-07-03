@@ -21,7 +21,6 @@ from synthetic_data_kit.utils.config import (
     load_config,
 )
 from synthetic_data_kit.utils.llm_processing import (
-    convert_to_conversation_format,
     parse_qa_pairs,
     parse_ratings,
 )
@@ -55,7 +54,8 @@ class QAGenerator:
         ]
 
         summary = self.client.chat_completion(
-            messages, temperature=0.1  # Use lower temperature for summaries
+            messages,
+            temperature=0.1,  # Use lower temperature for summaries
         )
 
         if verbose:
@@ -78,7 +78,7 @@ class QAGenerator:
         chunks = split_into_chunks(document_text, chunk_size=chunk_size, overlap=overlap)
 
         if verbose:
-            print(f"Generating QA pairs...")
+            print("Generating QA pairs...")
             print(f"Document split into {len(chunks)} chunks")
             print(f"Using batch size of {batch_size}")
 
@@ -120,7 +120,7 @@ class QAGenerator:
             ]
 
             progress_ctx = Progress(*progress_columns)
-            generate_task = progress_ctx.add_task(f"Generating QA pairs", total=len(chunks))
+            generate_task = progress_ctx.add_task("Generating QA pairs", total=len(chunks))
             progress_ctx.start()
         else:
             progress_ctx = None
@@ -156,7 +156,7 @@ class QAGenerator:
                     all_qa_pairs.extend(chunk_pairs)
 
                     if verbose:
-                        print(f"  Generated {len(chunk_pairs)} pairs from chunk {chunk_index+1}")
+                        print(f"  Generated {len(chunk_pairs)} pairs from chunk {chunk_index + 1}")
 
                 # Update progress bar if in verbose mode
                 if progress_ctx and generate_task:
@@ -222,11 +222,11 @@ class QAGenerator:
         ]
 
         with Progress(*progress_columns) as progress:
-            rating_task = progress.add_task(f"Rating QA pairs", total=len(batches))
+            rating_task = progress.add_task("Rating QA pairs", total=len(batches))
 
             for i, batch in enumerate(batches):
                 if verbose:
-                    print(f"Rating batch {i+1}/{len(batches)}...")
+                    print(f"Rating batch {i + 1}/{len(batches)}...")
                 batch_json = json.dumps(batch, indent=2)
 
                 # Format the rating prompt with pairs
@@ -247,7 +247,7 @@ class QAGenerator:
 
                 except Exception as e:
                     if verbose:
-                        print(f"Error rating batch {i+1}: {str(e)}")
+                        print(f"Error rating batch {i + 1}: {str(e)}")
 
                 time.sleep(0.5)  # Avoid rate limits
                 progress.update(rating_task, advance=1)

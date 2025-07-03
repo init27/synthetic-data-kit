@@ -106,7 +106,7 @@ class VQAGenerator:
             messages["label"][i] = response
 
             if verbose and i < 2:  # Show first two examples in verbose mode
-                print(f"Example {i+1}:")
+                print(f"Example {i + 1}:")
                 print(f"Query: {messages['query'][i]}")
                 print(f"Response: {response[:100]}..." if len(response) > 100 else response)
                 print()
@@ -150,7 +150,7 @@ class VQAGenerator:
                     "The 'datasets' package is required for this functionality. Please install it using 'pip install datasets'."
                 )
             try:
-                with open(dataset_source, "r", encoding="utf-8") as f:
+                with open(dataset_source, encoding="utf-8") as f:
                     input_data = f.read()
                 dataset = Dataset.from_dict(json.loads(input_data))
             except FileNotFoundError as e:

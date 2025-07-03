@@ -6,7 +6,6 @@
 # Ingest different file formats
 
 import concurrent.futures
-import os
 import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -20,7 +19,6 @@ from synthetic_data_kit.parsers.pdf_parser import PDFParser
 from synthetic_data_kit.parsers.ppt_parser import PPTParser
 from synthetic_data_kit.parsers.txt_parser import TXTParser
 from synthetic_data_kit.parsers.youtube_parser import YouTubeParser
-from synthetic_data_kit.utils.config import get_path_config
 
 # Define supported extensions and their parsers
 EXTENSION_PARSERS = {

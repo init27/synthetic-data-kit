@@ -6,11 +6,10 @@
 # Filter low quality examples
 
 import concurrent.futures
-import glob
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 from synthetic_data_kit.generators.qa_generator import QAGenerator
 from synthetic_data_kit.models.llm_client import LLMClient
@@ -49,7 +48,7 @@ def curate_qa_pairs(
         os.environ["SDK_VERBOSE"] = "false"
 
     # Load input file
-    with open(input_path, "r", encoding="utf-8") as f:
+    with open(input_path, encoding="utf-8") as f:
         data = json.load(f)
 
     # Extract QA pairs
@@ -139,7 +138,7 @@ def curate_qa_pairs(
         ]
 
         progress_ctx = Progress(*progress_columns)
-        rate_task = progress_ctx.add_task(f"Rating QA pairs", total=len(batches))
+        rate_task = progress_ctx.add_task("Rating QA pairs", total=len(batches))
         progress_ctx.start()
     else:
         progress_ctx = None
@@ -172,7 +171,7 @@ def curate_qa_pairs(
             if verbose:
                 print(f"Received {len(batch_responses)} responses")
                 for i, resp in enumerate(batch_responses):
-                    print(f"Response {i+1}: {resp[:100]}...")
+                    print(f"Response {i + 1}: {resp[:100]}...")
 
             # Process each response
             for j, response in enumerate(batch_responses):
@@ -183,7 +182,7 @@ def curate_qa_pairs(
                     # Parse the ratings with original batch for fallback
                     try:
                         if verbose:
-                            print(f"Processing batch {original_batch_index+1}")
+                            print(f"Processing batch {original_batch_index + 1}")
 
                         rated_batch = parse_ratings(response, original_batch)
 
@@ -199,7 +198,7 @@ def curate_qa_pairs(
                                     total_passed += 1
                     except Exception as e:
                         if verbose:
-                            print(f"Error processing batch {original_batch_index+1}: {str(e)}")
+                            print(f"Error processing batch {original_batch_index + 1}: {str(e)}")
                             print(f"First 100 chars of response: {response[:100]}")
 
                         # Try processing one pair at a time as a fallback

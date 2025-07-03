@@ -10,7 +10,7 @@ import logging
 import os
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional
 
 import requests
 
@@ -327,12 +327,12 @@ class LLMClient:
                         except:
                             pass
 
-                raise ValueError(f"Could not extract content from response using any known method")
+                raise ValueError("Could not extract content from response using any known method")
 
             except Exception as e:
                 if verbose:
                     logger.error(
-                        f"{self.provider} API error (attempt {attempt+1}/{self.max_retries}): {str(e)}"
+                        f"{self.provider} API error (attempt {attempt + 1}/{self.max_retries}): {str(e)}"
                     )
 
                 if attempt == self.max_retries - 1:
@@ -590,7 +590,7 @@ class LLMClient:
                                 pass
 
                     raise ValueError(
-                        f"Could not extract content from response using any known method"
+                        "Could not extract content from response using any known method"
                     )
 
                 return content
@@ -598,7 +598,7 @@ class LLMClient:
             except Exception as e:
                 if verbose:
                     logger.error(
-                        f"{self.provider} API error (attempt {attempt+1}/{self.max_retries}): {str(e)}"
+                        f"{self.provider} API error (attempt {attempt + 1}/{self.max_retries}): {str(e)}"
                     )
 
                 if attempt == self.max_retries - 1:
@@ -624,7 +624,7 @@ class LLMClient:
             batch_chunk = message_batches[i : i + batch_size]
             if verbose:
                 logger.info(
-                    f"Processing batch {i//batch_size + 1}/{(len(message_batches) + batch_size - 1) // batch_size} with {len(batch_chunk)} requests"
+                    f"Processing batch {i // batch_size + 1}/{(len(message_batches) + batch_size - 1) // batch_size} with {len(batch_chunk)} requests"
                 )
 
             # Import asyncio here to avoid issues if not available
@@ -679,7 +679,7 @@ class LLMClient:
             batch_chunk = message_batches[i : i + batch_size]
             if verbose:
                 logger.info(
-                    f"Processing batch {i//batch_size + 1}/{(len(message_batches) + batch_size - 1) // batch_size} with {len(batch_chunk)} requests"
+                    f"Processing batch {i // batch_size + 1}/{(len(message_batches) + batch_size - 1) // batch_size} with {len(batch_chunk)} requests"
                 )
 
             # Create batch request payload for VLLM

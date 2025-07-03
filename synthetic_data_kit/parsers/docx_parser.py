@@ -5,7 +5,6 @@
 # the root directory of this source tree.
 # DOCX parasers
 import os
-from typing import Any, Dict
 
 
 class DOCXParser:

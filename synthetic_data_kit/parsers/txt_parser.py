@@ -5,7 +5,6 @@
 # the root directory of this source tree.
 # TXT parsering logic, probably the most minimal
 import os
-from typing import Any, Dict
 
 
 class TXTParser:
@@ -20,7 +19,7 @@ class TXTParser:
         Returns:
             Text content
         """
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             return f.read()
 
     def save(self, content: str, output_path: str) -> None:
