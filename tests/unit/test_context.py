@@ -7,7 +7,8 @@
 import os
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+
 import pytest
 
 from synthetic_data_kit.core.context import AppContext
@@ -37,11 +38,11 @@ class TestAppContext:
         """Test that _ensure_data_dirs creates all required directories"""
         with patch('synthetic_data_kit.core.context.DEFAULT_CONFIG_PATH', '/fake/path'):
             context = AppContext()
-            
+
             # Verify all expected directories are created
             expected_dirs = [
                 "data/pdf",
-                "data/html", 
+                "data/html",
                 "data/youtube",
                 "data/docx",
                 "data/ppt",
@@ -51,9 +52,9 @@ class TestAppContext:
                 "data/cleaned",
                 "data/final",
             ]
-            
+
             assert mock_makedirs.call_count == len(expected_dirs)
-            
+
             # Check that each expected directory was created with exist_ok=True
             for expected_dir in expected_dirs:
                 mock_makedirs.assert_any_call(expected_dir, exist_ok=True)
@@ -65,15 +66,15 @@ class TestAppContext:
             original_cwd = os.getcwd()
             try:
                 os.chdir(temp_dir)
-                
+
                 with patch('synthetic_data_kit.core.context.DEFAULT_CONFIG_PATH', '/fake/path'):
                     context = AppContext()
-                
+
                 # Verify all directories were actually created
                 expected_dirs = [
                     "data/pdf",
                     "data/html",
-                    "data/youtube", 
+                    "data/youtube",
                     "data/docx",
                     "data/ppt",
                     "data/txt",
@@ -82,12 +83,12 @@ class TestAppContext:
                     "data/cleaned",
                     "data/final",
                 ]
-                
+
                 for dir_path in expected_dirs:
                     full_path = os.path.join(temp_dir, dir_path)
                     assert os.path.exists(full_path), f"Directory {dir_path} was not created"
                     assert os.path.isdir(full_path), f"{dir_path} exists but is not a directory"
-            
+
             finally:
                 os.chdir(original_cwd)
 
@@ -95,14 +96,14 @@ class TestAppContext:
         """Test that config attribute can be modified"""
         with patch.object(AppContext, '_ensure_data_dirs'):
             context = AppContext()
-            
+
             # Initially empty
             assert context.config == {}
-            
+
             # Should be able to modify
             context.config['test_key'] = 'test_value'
             assert context.config['test_key'] == 'test_value'
-            
+
             # Should be able to add nested structure
             context.config['nested'] = {'inner_key': 'inner_value'}
             assert context.config['nested']['inner_key'] == 'inner_value'
@@ -112,14 +113,14 @@ class TestAppContext:
         with patch.object(AppContext, '_ensure_data_dirs'):
             context1 = AppContext(config_path=Path('/path1'))
             context2 = AppContext(config_path=Path('/path2'))
-            
+
             # Different config paths
             assert context1.config_path != context2.config_path
-            
+
             # Independent config dictionaries
             context1.config['key1'] = 'value1'
             context2.config['key2'] = 'value2'
-            
+
             assert 'key1' in context1.config
             assert 'key1' not in context2.config
             assert 'key2' in context2.config
@@ -130,7 +131,7 @@ class TestAppContext:
         """Test that AppContext handles directory creation errors gracefully"""
         # Mock makedirs to raise an exception
         mock_makedirs.side_effect = OSError("Permission denied")
-        
+
         with patch('synthetic_data_kit.core.context.DEFAULT_CONFIG_PATH', '/fake/path'):
             # Should raise the OSError since _ensure_data_dirs doesn't catch exceptions
             with pytest.raises(OSError, match="Permission denied"):
@@ -143,7 +144,7 @@ class TestAppContext:
             string_path = "/string/path"
             context1 = AppContext(config_path=string_path)
             assert context1.config_path == string_path
-            
+
             # Test with Path object
             path_obj = Path("/path/object")
             context2 = AppContext(config_path=path_obj)

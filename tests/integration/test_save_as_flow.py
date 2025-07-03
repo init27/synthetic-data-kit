@@ -3,8 +3,7 @@
 import json
 import os
 import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -45,7 +44,7 @@ def test_convert_format():
         assert os.path.exists(result_path)
 
         # Read the file and check content
-        with open(result_path, "r") as f:
+        with open(result_path) as f:
             lines = f.readlines()
 
         # Should have two lines (one for each QA pair)
@@ -69,7 +68,7 @@ def test_convert_format():
         assert os.path.exists(result_path)
 
         # Read the file and check content
-        with open(result_path, "r") as f:
+        with open(result_path) as f:
             data = json.load(f)
 
         # Should have two items in the list
@@ -133,7 +132,7 @@ def test_convert_format_with_filtered_pairs():
         assert os.path.exists(result_path)
 
         # Read the file and check content
-        with open(result_path, "r") as f:
+        with open(result_path) as f:
             data = json.load(f)
 
         # Should have two items in the list
@@ -202,7 +201,7 @@ def test_convert_format_with_conversations():
         assert os.path.exists(result_path)
 
         # Read the file and check content
-        with open(result_path, "r") as f:
+        with open(result_path) as f:
             lines = f.readlines()
 
         # Should have two lines (one for each conversation)
@@ -289,7 +288,7 @@ def test_process_multiple_files():
             assert os.path.exists(output_file)
 
         # Check the content of the first output file
-        with open(output_files[0], "r") as f:
+        with open(output_files[0]) as f:
             lines = f.readlines()
 
         # Should have one line for the first file
@@ -300,7 +299,7 @@ def test_process_multiple_files():
         assert line_data["question"] == "What is synthetic data?"
 
         # Check the content of the second output file
-        with open(output_files[1], "r") as f:
+        with open(output_files[1]) as f:
             lines = f.readlines()
 
         # Should have one line for the second file

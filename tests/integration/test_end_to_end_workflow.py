@@ -3,13 +3,11 @@
 import json
 import os
 import tempfile
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from synthetic_data_kit.core import create, curate, ingest, save_as
-from synthetic_data_kit.models.llm_client import LLMClient
+from synthetic_data_kit.core import create, ingest, save_as
 from synthetic_data_kit.parsers.txt_parser import TXTParser
 
 
@@ -59,7 +57,7 @@ def test_complete_workflow(patch_config, test_env):
             assert output_path == parsed_path
 
             # Copy the source content to the parsed path for the next step
-            with open(source_path, "r") as src, open(parsed_path, "w") as dst:
+            with open(source_path) as src, open(parsed_path, "w") as dst:
                 dst.write(src.read())
 
         # 2. Create step - mock the LLM client
@@ -157,7 +155,7 @@ def test_complete_workflow(patch_config, test_env):
         assert os.path.exists(final_path)
 
         # Read the file and check content
-        with open(final_path, "r") as f:
+        with open(final_path) as f:
             lines = f.readlines()
 
         # Should have one line (one QA pair passed the curation)

@@ -34,7 +34,7 @@ def test_txt_parser():
         parser.save(content, output_path)
 
         # Check that the file was saved correctly
-        with open(output_path, "r") as f:
+        with open(output_path) as f:
             saved_content = f.read()
 
         assert saved_content == content
@@ -93,7 +93,7 @@ def test_html_parser():
             parser.save(content, output_path)
 
             # Check that the file was saved correctly
-            with open(output_path, "r") as f:
+            with open(output_path) as f:
                 saved_content = f.read()
 
             assert saved_content == content
@@ -133,7 +133,7 @@ def test_pdf_parser():
             parser.save(content, output_path)
 
             # Check that the file was saved correctly
-            with open(output_path, "r") as f:
+            with open(output_path) as f:
                 saved_content = f.read()
 
             assert saved_content == content

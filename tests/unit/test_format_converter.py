@@ -46,7 +46,7 @@ def test_to_jsonl():
         assert os.path.exists(output_path)
 
         # Read the file and check content
-        with open(output_path, "r") as f:
+        with open(output_path) as f:
             lines = f.readlines()
 
         # Should have two lines (one for each QA pair)
@@ -95,7 +95,7 @@ def test_to_alpaca():
         assert os.path.exists(output_path)
 
         # Read the file and check content
-        with open(output_path, "r") as f:
+        with open(output_path) as f:
             data = json.load(f)
 
         # Should have two items in the list
@@ -146,7 +146,7 @@ def test_to_fine_tuning():
         assert os.path.exists(output_path)
 
         # Read the file and check content
-        with open(output_path, "r") as f:
+        with open(output_path) as f:
             data = json.load(f)
 
         # Should have two items in the list
@@ -198,7 +198,7 @@ def test_to_chatml():
         assert os.path.exists(output_path)
 
         # Read the file and check content
-        with open(output_path, "r") as f:
+        with open(output_path) as f:
             lines = f.readlines()
 
         # Should have two lines (one for each QA pair)

@@ -74,7 +74,7 @@ def sample_qa_pairs_file():
 
 class MockLLMClientFactory:
     """Factory for creating mock LLM clients with different configurations."""
-    
+
     @staticmethod
     def create_qa_client(qa_pairs=None):
         """Create a mock client for QA generation."""
@@ -89,14 +89,14 @@ class MockLLMClientFactory:
                     "answer": "Synthetic data can help overcome data scarcity and privacy concerns.",
                 },
             ]
-        
+
         mock_client = MagicMock()
         mock_client.chat_completion.return_value = json.dumps(qa_pairs)
         mock_client.batch_completion.return_value = [
             json.dumps([pair]) for pair in qa_pairs
         ]
         return mock_client
-    
+
     @staticmethod
     def create_cot_client(cot_examples=None):
         """Create a mock client for Chain of Thought generation."""
@@ -107,27 +107,27 @@ class MockLLMClientFactory:
                     "answer": "Based on my analysis, the answer is..."
                 }
             ]
-        
+
         mock_client = MagicMock()
         mock_client.chat_completion.return_value = json.dumps(cot_examples)
         mock_client.batch_completion.return_value = [
             json.dumps([example]) for example in cot_examples
         ]
         return mock_client
-    
+
     @staticmethod
     def create_summary_client(summary_text="This is a test summary."):
         """Create a mock client for summary generation."""
         mock_client = MagicMock()
         mock_client.chat_completion.return_value = summary_text
         return mock_client
-    
+
     @staticmethod
     def create_rating_client(ratings=None):
         """Create a mock client for content rating."""
         if ratings is None:
             ratings = [8, 7, 9]  # Default ratings
-        
+
         mock_client = MagicMock()
         mock_client.chat_completion.return_value = json.dumps(ratings)
         mock_client.batch_completion.return_value = [
@@ -150,7 +150,7 @@ def mock_llm_client(llm_client_factory):
 
 class MockConfigFactory:
     """Factory for creating various mock configurations."""
-    
+
     @staticmethod
     def create_api_config(provider="api-endpoint", api_key="mock-key", model="mock-model"):
         """Create a mock API endpoint configuration."""
@@ -174,7 +174,7 @@ class MockConfigFactory:
                 "output_dir": "output",
             },
         }
-    
+
     @staticmethod
     def create_vllm_config(model="mock-vllm-model"):
         """Create a mock vLLM configuration."""

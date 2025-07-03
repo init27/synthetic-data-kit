@@ -1,6 +1,5 @@
 """Unit tests for LLM processing utilities."""
 
-import json
 
 import pytest
 

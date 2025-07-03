@@ -3,11 +3,11 @@
 import json
 import os
 import tempfile
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
-from synthetic_data_kit.core import create, curate, ingest, save_as
+from synthetic_data_kit.core import create, curate, save_as
 from synthetic_data_kit.models.llm_client import LLMClient
 from synthetic_data_kit.utils.llm_processing import parse_qa_pairs
 

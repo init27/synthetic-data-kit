@@ -1,7 +1,5 @@
 """Unit tests for utility functions."""
 
-import inspect
-import json
 from pathlib import Path
 
 import pytest

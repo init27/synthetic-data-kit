@@ -7,6 +7,7 @@
 import os
 import tempfile
 from unittest.mock import MagicMock, patch
+
 import pytest
 
 from synthetic_data_kit.parsers.docx_parser import DOCXParser
@@ -30,7 +31,7 @@ class TestDOCXParser:
         mock_doc = MagicMock()
         mock_docx.Document.return_value = mock_doc
         mock_import.return_value = mock_docx
-        
+
         # Mock paragraphs
         mock_paragraph1 = MagicMock()
         mock_paragraph1.text = "First paragraph"
@@ -38,27 +39,27 @@ class TestDOCXParser:
         mock_paragraph2.text = "Second paragraph"
         mock_paragraph3 = MagicMock()
         mock_paragraph3.text = ""  # Empty paragraph should be filtered
-        
+
         mock_doc.paragraphs = [mock_paragraph1, mock_paragraph2, mock_paragraph3]
-        
+
         # Mock tables
         mock_cell1 = MagicMock()
         mock_cell1.text = "Cell 1"
         mock_cell2 = MagicMock()
         mock_cell2.text = "Cell 2"
-        
+
         mock_row = MagicMock()
         mock_row.cells = [mock_cell1, mock_cell2]
-        
+
         mock_table = MagicMock()
         mock_table.rows = [mock_row]
-        
+
         mock_doc.tables = [mock_table]
-        
+
         # Test parsing
         parser = DOCXParser()
         result = parser.parse("/fake/path.docx")
-        
+
         expected = "First paragraph\n\nSecond paragraph\n\nCell 1\n\nCell 2"
         assert result == expected
         # Verify docx import was called (first argument of any call should be 'docx')
@@ -78,14 +79,14 @@ class TestDOCXParser:
         """Test saving DOCX content to file"""
         parser = DOCXParser()
         content = "Test content"
-        
+
         with tempfile.TemporaryDirectory() as temp_dir:
             output_path = os.path.join(temp_dir, "subdir", "output.txt")
             parser.save(content, output_path)
-            
+
             # Verify file was created and content is correct
             assert os.path.exists(output_path)
-            with open(output_path, "r", encoding="utf-8") as f:
+            with open(output_path, encoding="utf-8") as f:
                 assert f.read() == content
 
 
@@ -107,18 +108,18 @@ class TestPPTParser:
         mock_presentation_class.return_value = mock_prs
         mock_pptx.Presentation = mock_presentation_class
         mock_import.return_value = mock_pptx
-        
+
         # Mock slide 1
         mock_slide1 = MagicMock()
         mock_title1 = MagicMock()
         mock_title1.text = "Slide 1 Title"
-        
+
         # Setup shapes collection with title attribute
         mock_shapes1 = MagicMock()
         mock_shapes1.title = mock_title1
         mock_shapes1.__iter__ = lambda self: iter([mock_title1, MagicMock(text="Slide 1 content")])
         mock_slide1.shapes = mock_shapes1
-        
+
         # Mock slide 2 (no title)
         mock_slide2 = MagicMock()
         mock_shapes2 = MagicMock()
@@ -127,13 +128,13 @@ class TestPPTParser:
         mock_shape2.text = "Slide 2 content"
         mock_shapes2.__iter__ = lambda self: iter([mock_shape2])
         mock_slide2.shapes = mock_shapes2
-        
+
         mock_prs.slides = [mock_slide1, mock_slide2]
-        
+
         # Test parsing
         parser = PPTParser()
         result = parser.parse("/fake/path.pptx")
-        
+
         expected_lines = [
             "--- Slide 1 ---",
             "Title: Slide 1 Title",
@@ -162,14 +163,14 @@ class TestPPTParser:
         """Test saving PPT content to file"""
         parser = PPTParser()
         content = "Test presentation content"
-        
+
         with tempfile.TemporaryDirectory() as temp_dir:
             output_path = os.path.join(temp_dir, "subdir", "output.txt")
             parser.save(content, output_path)
-            
+
             # Verify file was created and content is correct
             assert os.path.exists(output_path)
-            with open(output_path, "r", encoding="utf-8") as f:
+            with open(output_path, encoding="utf-8") as f:
                 assert f.read() == content
 
 
@@ -205,14 +206,14 @@ class TestYouTubeParser:
                 mock_transcript_api.YouTubeTranscriptApi.get_transcript.return_value = mock_transcript
                 return mock_transcript_api
             return MagicMock()  # fallback for other imports
-        
+
         mock_import.side_effect = mock_import_side_effect
-        
+
         # Test parsing
         parser = YouTubeParser()
         test_url = "https://www.youtube.com/watch?v=test_video_id"
         result = parser.parse(test_url)
-        
+
         # Verify the result structure
         assert "Title: Test Video Title" in result
         assert "Author: Test Author" in result
@@ -222,7 +223,7 @@ class TestYouTubeParser:
         assert "Hello everyone" in result
         assert "Welcome to this video" in result
         assert "Today we'll learn about testing" in result
-        
+
         # Verify imports were called
         import_calls = [call[0][0] for call in mock_import.call_args_list]
         assert 'pytubefix' in import_calls
@@ -235,7 +236,7 @@ class TestYouTubeParser:
             if name == 'pytubefix':
                 raise ImportError("No module named 'pytubefix'")
             return MagicMock()
-        
+
         mock_import.side_effect = import_side_effect
         parser = YouTubeParser()
         with pytest.raises(ImportError, match="pytube and youtube-transcript-api are required"):
@@ -250,7 +251,7 @@ class TestYouTubeParser:
             elif name == 'pytubefix':
                 return MagicMock()  # pytubefix succeeds
             return MagicMock()
-        
+
         mock_import.side_effect = import_side_effect
         parser = YouTubeParser()
         with pytest.raises(ImportError, match="pytube and youtube-transcript-api are required"):
@@ -260,14 +261,14 @@ class TestYouTubeParser:
         """Test saving YouTube transcript to file"""
         parser = YouTubeParser()
         content = "Test transcript content"
-        
+
         with tempfile.TemporaryDirectory() as temp_dir:
             output_path = os.path.join(temp_dir, "subdir", "output.txt")
             parser.save(content, output_path)
-            
+
             # Verify file was created and content is correct
             assert os.path.exists(output_path)
-            with open(output_path, "r", encoding="utf-8") as f:
+            with open(output_path, encoding="utf-8") as f:
                 assert f.read() == content
 
     @patch('builtins.__import__')
@@ -289,14 +290,14 @@ class TestYouTubeParser:
                 mock_transcript_api.YouTubeTranscriptApi.get_transcript.return_value = []
                 return mock_transcript_api
             return MagicMock()
-        
+
         mock_import.side_effect = mock_import_side_effect
-        
+
         # Test parsing
         parser = YouTubeParser()
         test_url = "https://www.youtube.com/watch?v=test_video_id"
         result = parser.parse(test_url)
-        
+
         # Should still have metadata even with empty transcript
         assert "Title: Empty Video" in result
         assert "Author: Test Author" in result
