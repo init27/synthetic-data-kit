@@ -94,11 +94,7 @@ target-version = "py38"
 #     "UP", # pyupgrade
 # ]
 select = []  # Disable all linting
-    "E501",  # Line too long (some long strings are unavoidable)
-    "F401",  # Imported but unused
-    "E722",  # Bare except
-    "B904",  # Exception chaining
-]
+ignore = []
 
 [tool.ruff.format]
 quote-style = "double"
