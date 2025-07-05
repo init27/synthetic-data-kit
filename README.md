@@ -6,13 +6,13 @@ Generate Reasoning Traces, QA Pairs, save them to a fine-tuning format with a si
 
 > [Checkout our guide on using the tool to unlock task-specific reasoning in Llama-3 family](https://github.com/meta-llama/synthetic-data-kit/tree/main/use-cases/adding_reasoning_to_llama_3)
 
-# What does Synthetic Data Kit offer?
+# What does Synthetic Data Kit offer? 
 
 Fine-Tuning Large Language Models is easy. There are many mature tools that you can use to fine-tune Llama model family using various post-training techniques.
 
 ### Why target data preparation?
 
-Multiple tools support standardized formats. However, most of the times your dataset is not structured in "user", "assistant" threads or in a certain format that plays well with a fine-tuning packages.
+Multiple tools support standardized formats. However, most of the times your dataset is not structured in "user", "assistant" threads or in a certain format that plays well with a fine-tuning packages. 
 
 This toolkit simplifies the journey of:
 
@@ -22,13 +22,13 @@ This toolkit simplifies the journey of:
 - Creating synthetic datasets
 - Supporting various formats of post-training fine-tuning
 
-# How does Synthetic Data Kit offer it?
+# How does Synthetic Data Kit offer it? 
 
 The tool is designed to follow a simple CLI structure with 4 commands:
 
 - `ingest` various file formats
 - `create` your fine-tuning format: `QA` pairs, `QA` pairs with CoT, `summary` format
-- `curate`: Using Llama as a judge to curate high quality examples.
+- `curate`: Using Llama as a judge to curate high quality examples. 
 - `save-as`: After that you can simply save these to a format that your fine-tuning workflow requires.
 
 You can override any parameter or detail by either using the CLI or overriding the default YAML config.
@@ -41,7 +41,7 @@ You can override any parameter or detail by either using the CLI or overriding t
 ```bash
 # Create a new environment
 
-conda create -n synthetic-data python=3.10
+conda create -n synthetic-data python=3.10 
 
 conda activate synthetic-data
 
@@ -56,7 +56,7 @@ cd synthetic-data-kit
 pip install -e .
 ```
 
-To get an overview of commands type:
+To get an overview of commands type: 
 
 `synthetic-data-kit --help`
 
@@ -92,7 +92,7 @@ synthetic-data-kit ingest docs/report.pdf
 # Generate QA pairs (default)
 synthetic-data-kit create data/output/report.txt --type qa
 
-OR
+OR 
 
 # Generate Chain of Thought (CoT) reasoning examples
 synthetic-data-kit create data/output/report.txt --type cot
@@ -160,7 +160,7 @@ synthetic-data-kit -c my_config.yaml ingest docs/paper.pdf
 synthetic-data-kit ingest research_paper.pdf
 
 # Generate QA pairs
-synthetic-data-kit create data/output/research_paper.txt -n 30 --threshold 8.0
+synthetic-data-kit create data/output/research_paper.txt -n 30
 
 # Curate data
 synthetic-data-kit curate data/generated/research_paper_qa_pairs.json -t 8.5
@@ -188,12 +188,72 @@ synthetic-data-kit create data/output/youtube_dQw4w9WgXcQ.txt
 # Bash script to process multiple files
 for file in data/pdf/*.pdf; do
   filename=$(basename "$file" .pdf)
-
+  
   synthetic-data-kit ingest "$file"
   synthetic-data-kit create "data/output/${filename}.txt" -n 20
   synthetic-data-kit curate "data/generated/${filename}_qa_pairs.json" -t 7.5
   synthetic-data-kit save-as "data/cleaned/${filename}_cleaned.json" -f chatml
 done
+```
+
+## Document Processing & Chunking
+
+### How Chunking Works
+
+The Synthetic Data Kit automatically handles documents of any size using an intelligent processing strategy:
+
+- **Small documents** (< 8000 characters): Processed in a single API call for maximum context and quality
+- **Large documents** (≥ 8000 characters): Automatically split into chunks with overlap to maintain context
+
+### Controlling Chunking Behavior
+
+You can customize chunking with CLI flags or config settings:
+
+```bash
+# Use custom chunk size and overlap
+synthetic-data-kit create document.txt --type qa --chunk-size 2000 --chunk-overlap 100
+
+# Generate more examples with custom chunking
+synthetic-data-kit create document.txt --type cot --num-pairs 50 --chunk-size 6000 --verbose
+```
+
+### Chunking Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--chunk-size` | 4000 | Size of text chunks in characters |
+| `--chunk-overlap` | 200 | Overlap between chunks to preserve context |
+| `--verbose` | false | Show chunking details and progress |
+
+### Understanding Chunking Output
+
+When using `--verbose`, you'll see chunking information:
+
+```bash
+synthetic-data-kit create large_document.txt --type qa --num-pairs 20 --verbose
+```
+
+Output:
+```
+Generating QA pairs...
+Document split into 8 chunks
+Using batch size of 32
+Processing 8 chunks to generate QA pairs...
+  Generated 3 pairs from chunk 1 (total: 3/20)
+  Generated 2 pairs from chunk 2 (total: 5/20)
+  ...
+  Reached target of 20 pairs. Stopping processing.
+Generated 20 QA pairs total (requested: 20)
+```
+
+### Consistent Behavior Across Content Types
+
+Both QA and CoT generation now use the same chunking logic:
+
+```bash
+# Both use chunking for large documents
+synthetic-data-kit create document.txt --type qa --num-pairs 100 --chunk-size 3000
+synthetic-data-kit create document.txt --type cot --num-pairs 20 --chunk-size 3000
 ```
 
 ## Advanced Usage
@@ -207,11 +267,11 @@ prompts:
   qa_generation: |
     You are creating question-answer pairs for fine-tuning a legal assistant.
     Focus on technical legal concepts, precedents, and statutory interpretation.
-
+    
     Below is a chunk of text about: {summary}...
-
+    
     Create {num_pairs} high-quality question-answer pairs based ONLY on this text.
-
+    
     Return ONLY valid JSON formatted as:
     [
       {
@@ -220,7 +280,7 @@ prompts:
       },
       ...
     ]
-
+    
     Text:
     ---
     {text}
@@ -236,18 +296,18 @@ graph LR
     SDK --> Create[create]
     SDK --> Curate[curate]
     SDK --> SaveAs[save-as]
-
+    
     Ingest --> PDFFile[PDF File]
     Ingest --> HTMLFile[HTML File]
     Ingest --> YouTubeURL[File Format]
 
-
+    
     Create --> CoT[CoT]
     Create --> QA[QA Pairs]
     Create --> Summary[Summary]
-
+    
     Curate --> Filter[Filter by Quality]
-
+    
     SaveAs --> JSONL[JSONL Format]
     SaveAs --> Alpaca[Alpaca Format]
     SaveAs --> FT[Fine-Tuning Format]

@@ -93,6 +93,11 @@ def test_generate_cot_examples(patch_config):
                 "reasoning": "There are several reasons to use synthetic data. First, it helps protect privacy by not using real personal data. Second, it can be used to balance datasets for machine learning. Third, it can be generated in large quantities without collecting real data.",
                 "answer": "To protect privacy and create diverse training examples.",
             },
+            {
+                "question": "How is synthetic data generated?",
+                "reasoning": "Synthetic data can be generated using various techniques. These include statistical models, machine learning algorithms, and rule-based systems. The choice of method depends on the type of data and the intended use case.",
+                "answer": "Using statistical models, ML algorithms, and rule-based systems.",
+            },
         ]
     )
 

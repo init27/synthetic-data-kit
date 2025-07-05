@@ -1,0 +1,37 @@
+{
+  "summary": "Here is a summary of the document in 3-5 sentences, focusing on the main topic and key concepts:\n\nThe document introduces MonkeyOCR, a novel document parsing model that leverages a Structure-Recognition-Relation (SRR) triplet paradigm to achieve state-of-the-art performance. MonkeyOCR simplifies traditional multi-tool pipelines and avoids the inefficiencies of processing full pages with large multimodal models. The model is supported by MonkeyDoc, a comprehensive dataset covering various document types in Chinese and English. MonkeyOCR outperforms existing open-source and closed-source models in English document parsing and achieves competitive performance in Chinese document parsing. The SRR paradigm enables accurate structural understanding, precise region-level recognition, and faithful logical ordering, making MonkeyOCR a promising foundation model for text domain applications.",
+  "qa_pairs": [
+    {
+      "question": "What is the name of the vision-language model introduced in the abstract for document parsing?",
+      "answer": "MonkeyOCR."
+    },
+    {
+      "question": "How many instances are there in the MonkeyDoc dataset introduced for training and evaluating MonkeyOCR?",
+      "answer": "3.9 million."
+    },
+    {
+      "question": "What are the two principal paradigms that existing document parsing solutions have evolved along?",
+      "answer": "Pipeline-based and end-to-end approaches."
+    },
+    {
+      "question": "What is the inference speed of Qwen2.5-VL-7B compared to MinerU?",
+      "answer": "The inference speed of Qwen2.5-VL-7B is merely 18% of MinerU."
+    },
+    {
+      "question": "What is the size of the MonkeyDoc dataset in terms of block-level instances?",
+      "answer": "MonkeyDoc comprises 3.9 million block-level instances."
+    },
+    {
+      "question": "What improvements does MonkeyOCR deliver compared to MinerU and Qwen2.5-VL-7B?",
+      "answer": "MonkeyOCR delivers substantial improvements: 8.6% higher TEDS for table recognition, 15.0% better CDM for formula recognition, and over 10% lower edit distance on both English and Chinese tasks."
+    },
+    {
+      "question": "What is the main difference between pipeline-based and end-to-end approaches in document parsing?",
+      "answer": "Pipeline-based approaches decompose the document parsing workflow into a sequence of specialized sub-tasks, while end-to-end approaches directly process entire document pages or substantial regions through a unified neural network, generating structured outputs in a single stage."
+    },
+    {
+      "question": "What type of framework does Donut introduce for document classification, visual question answering, and information extraction?",
+      "answer": "An OCR-free, Transformer-based framework."
+    }
+  ]
+}

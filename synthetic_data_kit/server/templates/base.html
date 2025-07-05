@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Synthetic Data Kit{% endblock %}</title>
-
+    
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
-
+    
     <!-- Custom CSS -->
     <style>
         .navbar-brand img {
@@ -46,7 +46,7 @@
             border-radius: 5px;
         }
     </style>
-
+    
     {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -62,7 +62,7 @@
         </div>
       </div>
     </div>
-
+    
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('index') }}">
@@ -121,10 +121,10 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-
+    
     <!-- Custom scripts -->
     {% block scripts %}{% endblock %}
-
+  
   <!-- Common JavaScript for loading indicator -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -132,7 +132,7 @@
       const forms = document.querySelectorAll('form.loading-form');
       const loadingOverlay = document.getElementById('loading-overlay');
       const loadingMessage = document.getElementById('loading-message');
-
+      
       // Add submit event listener to each form
       forms.forEach(function(form) {
         form.addEventListener('submit', function(e) {
@@ -143,7 +143,7 @@
           } else {
             loadingMessage.textContent = 'Processing... Please wait';
           }
-
+          
           // Show loading overlay
           loadingOverlay.classList.remove('d-none');
         });

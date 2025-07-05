@@ -34,22 +34,32 @@ class TestAppContext:
             assert context.config == {}
 
     @patch("synthetic_data_kit.core.context.os.makedirs")
-    def test_ensure_data_dirs(self, mock_makedirs):
+    @patch("synthetic_data_kit.core.context.load_config")
+    def test_ensure_data_dirs(self, mock_load_config, mock_makedirs):
         """Test that _ensure_data_dirs creates all required directories"""
+        # Mock config with default directory structure
+        mock_config = {
+            'paths': {
+                'input': 'data/input',
+                'output': {
+                    'parsed': 'data/parsed',
+                    'generated': 'data/generated', 
+                    'curated': 'data/curated',
+                    'final': 'data/final'
+                }
+            }
+        }
+        mock_load_config.return_value = mock_config
+        
         with patch("synthetic_data_kit.core.context.DEFAULT_CONFIG_PATH", "/fake/path"):
             AppContext()
 
             # Verify all expected directories are created
             expected_dirs = [
-                "data/pdf",
-                "data/html",
-                "data/youtube",
-                "data/docx",
-                "data/ppt",
-                "data/txt",
-                "data/output",
+                "data/input",
+                "data/parsed",
                 "data/generated",
-                "data/cleaned",
+                "data/curated",
                 "data/final",
             ]
 
@@ -59,8 +69,23 @@ class TestAppContext:
             for expected_dir in expected_dirs:
                 mock_makedirs.assert_any_call(expected_dir, exist_ok=True)
 
-    def test_ensure_data_dirs_integration(self):
+    @patch("synthetic_data_kit.core.context.load_config")
+    def test_ensure_data_dirs_integration(self, mock_load_config):
         """Integration test for directory creation"""
+        # Mock config with default directory structure
+        mock_config = {
+            'paths': {
+                'input': 'data/input',
+                'output': {
+                    'parsed': 'data/parsed',
+                    'generated': 'data/generated', 
+                    'curated': 'data/curated',
+                    'final': 'data/final'
+                }
+            }
+        }
+        mock_load_config.return_value = mock_config
+        
         with tempfile.TemporaryDirectory() as temp_dir:
             # Change to temp directory for this test
             original_cwd = os.getcwd()
@@ -72,15 +97,10 @@ class TestAppContext:
 
                 # Verify all directories were actually created
                 expected_dirs = [
-                    "data/pdf",
-                    "data/html",
-                    "data/youtube",
-                    "data/docx",
-                    "data/ppt",
-                    "data/txt",
-                    "data/output",
+                    "data/input",
+                    "data/parsed",
                     "data/generated",
-                    "data/cleaned",
+                    "data/curated",
                     "data/final",
                 ]
 
@@ -127,8 +147,23 @@ class TestAppContext:
             assert "key2" not in context1.config
 
     @patch("synthetic_data_kit.core.context.os.makedirs")
-    def test_ensure_data_dirs_exception_handling(self, mock_makedirs):
+    @patch("synthetic_data_kit.core.context.load_config")
+    def test_ensure_data_dirs_exception_handling(self, mock_load_config, mock_makedirs):
         """Test that AppContext handles directory creation errors gracefully"""
+        # Mock config with default directory structure
+        mock_config = {
+            'paths': {
+                'input': 'data/input',
+                'output': {
+                    'parsed': 'data/parsed',
+                    'generated': 'data/generated', 
+                    'curated': 'data/curated',
+                    'final': 'data/final'
+                }
+            }
+        }
+        mock_load_config.return_value = mock_config
+        
         # Mock makedirs to raise an exception
         mock_makedirs.side_effect = OSError("Permission denied")
 

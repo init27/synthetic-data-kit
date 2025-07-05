@@ -274,15 +274,24 @@ def test_process_multiple_files():
     output_dir = tempfile.mkdtemp()
 
     try:
-        # Process multiple files
-        output_files = save_as.process_multiple_files(
-            input_files=input_files,
+        # Process multiple files using directory processor
+        from synthetic_data_kit.utils.directory_processor import process_directory_save_as
+        results = process_directory_save_as(
+            directory=input_dir,
             output_dir=output_dir,
-            format_type="jsonl",
-            parallel=False,  # Process sequentially for testing
+            format="jsonl",
+            storage_format="json",
+            config=None,
+            verbose=False,
         )
 
+        # Check that files were processed successfully
+        assert isinstance(results, dict)
+        assert results["successful"] == 2
+        assert results["failed"] == 0
+        
         # Check that output files were created
+        output_files = [result["output_file"] for result in results["results"]]
         assert len(output_files) == 2
         for output_file in output_files:
             assert os.path.exists(output_file)
@@ -358,34 +367,27 @@ def test_process_directory():
     output_dir = tempfile.mkdtemp()
 
     try:
-        # Mock the process_multiple_files function to isolate testing
-        with patch("synthetic_data_kit.core.save_as.process_multiple_files") as mock_process:
-            # Set up the mock to return dummy output files
-            mock_process.return_value = [
-                os.path.join(output_dir, "file1.jsonl"),
-                os.path.join(output_dir, "file2.jsonl"),
-            ]
+        # Process directory using directory processor
+        from synthetic_data_kit.utils.directory_processor import process_directory_save_as
+        results = process_directory_save_as(
+            directory=input_dir,
+            output_dir=output_dir,
+            format="jsonl",
+            storage_format="json",
+            config=None,
+            verbose=False,
+        )
 
-            # Process directory
-            output_files = save_as.process_directory(
-                input_dir=input_dir,
-                output_dir=output_dir,
-                format_type="jsonl",
-                parallel=False,  # Process sequentially for testing
-            )
+        # Check that files were processed successfully
+        assert isinstance(results, dict)
+        assert results["successful"] == 2
+        assert results["failed"] == 0
 
-            # Check that process_multiple_files was called
-            mock_process.assert_called_once()
-
-            # Check the input_files argument to process_multiple_files
-            # It should contain our two input files
-            call_args = mock_process.call_args[1]
-            input_files = call_args["input_files"]
-            assert len(input_files) == 2
-            assert set(input_files) == {file1_path, file2_path}
-
-            # Check that output_files matches what our mock returned
-            assert output_files == mock_process.return_value
+        # Check the output files were created
+        output_files = [result["output_file"] for result in results["results"]]
+        assert len(output_files) == 2
+        for output_file in output_files:
+            assert os.path.exists(output_file)
 
     finally:
         # Clean up input files
@@ -395,5 +397,9 @@ def test_process_directory():
                 os.unlink(file_path)
         os.rmdir(input_dir)
 
-        # Clean up output directory (no actual files since we mocked)
+        # Clean up output files
+        for filename in os.listdir(output_dir):
+            file_path = os.path.join(output_dir, filename)
+            if os.path.isfile(file_path):
+                os.unlink(file_path)
         os.rmdir(output_dir)

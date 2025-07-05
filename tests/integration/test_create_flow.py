@@ -133,9 +133,10 @@ def test_process_directory(patch_config, test_env):
                             ]
                             mock_process_file.side_effect = output_files
 
-                            # Run the process_directory function
-                            output_paths = create.process_directory(
-                                input_dir=temp_dir,
+                            # Import and run the process_directory function from directory_processor
+                            from synthetic_data_kit.utils.directory_processor import process_directory_create
+                            results = process_directory_create(
+                                directory=temp_dir,
                                 output_dir=output_dir,
                                 config_path=None,
                                 api_base=None,
@@ -149,8 +150,11 @@ def test_process_directory(patch_config, test_env):
                             # Verify process_file was called the right number of times
                             assert mock_process_file.call_count == len(file_paths)
 
-                            # Verify function returns expected output paths
-                            assert output_paths == output_files
+                            # Verify function returns expected results structure
+                            assert isinstance(results, dict)
+                            assert "total_files" in results
+                            assert "successful" in results
+                            assert results["total_files"] == len(file_paths)
 
     finally:
         # Clean up temporary files and directories

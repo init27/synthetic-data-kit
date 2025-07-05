@@ -134,6 +134,71 @@ Enhance tool-use conversations with Chain of Thought reasoning:
 synthetic-data-kit create tool_conversations.json --type cot-enhance
 ```
 
+## 5.1. Document Processing & Chunking Control
+
+The Synthetic Data Kit automatically handles documents of any size using intelligent processing:
+
+### How Chunking Works
+
+- **Small documents** (< 8000 characters): Processed in a single API call for maximum context
+- **Large documents** (≥ 8000 characters): Automatically split into overlapping chunks
+
+### Controlling Chunking with CLI Flags
+
+Use `--chunk-size` and `--chunk-overlap` to customize how large documents are processed:
+
+```bash
+# Smaller chunks for detailed processing
+synthetic-data-kit create data/output/large_document.txt --chunk-size 2000 --chunk-overlap 100
+
+# Larger chunks for faster processing with more context
+synthetic-data-kit create data/output/large_document.txt --chunk-size 6000 --chunk-overlap 300
+
+# Generate many examples with custom chunking
+synthetic-data-kit create data/output/large_document.txt --type cot --num-pairs 50 --chunk-size 3000
+```
+
+### Understanding Chunking Output
+
+Use `--verbose` to see how your document is being processed:
+
+```bash
+synthetic-data-kit create data/output/large_document.txt --type qa --num-pairs 20 --verbose
+```
+
+Example output:
+```
+Generating QA pairs...
+Document split into 8 chunks
+Using batch size of 32
+Processing 8 chunks to generate QA pairs...
+  Generated 3 pairs from chunk 1 (total: 3/20)
+  Generated 2 pairs from chunk 2 (total: 5/20)
+  Generated 3 pairs from chunk 3 (total: 8/20)
+  ...
+  Reached target of 20 pairs. Stopping processing.
+Generated 20 QA pairs total (requested: 20)
+```
+
+### Chunking Parameters Guide
+
+| Parameter | Default | Best For | Description |
+|-----------|---------|----------|-------------|
+| `--chunk-size 2000` | 4000 | Detailed analysis | More chunks, slower but detailed |
+| `--chunk-size 6000` | 4000 | Fast processing | Fewer chunks, faster processing |
+| `--chunk-overlap 50` | 200 | Reducing repetition | Minimal overlap between chunks |
+| `--chunk-overlap 400` | 200 | Preserving context | Maximum context preservation |
+
+### Content Type Consistency
+
+Both QA and CoT generation now use the same chunking logic for consistent behavior:
+
+```bash
+# Both will chunk the same way for large documents
+synthetic-data-kit create large_doc.txt --type qa --num-pairs 100 --chunk-size 3000
+synthetic-data-kit create large_doc.txt --type cot --num-pairs 20 --chunk-size 3000
+```
+
 ### Customizing Quality Thresholds
 
 Apply a stricter quality threshold during curation:
@@ -181,10 +246,26 @@ vllm:
 generation:
   temperature: 0.5   # Lower temperature for more deterministic outputs
   top_p: 0.95
+  
+  # Document processing strategy
+  processing_strategy: "auto"     # "auto", "single", or "chunking"
+  single_call_max_size: 8000      # Documents smaller than this use single call
+  
+  # Chunking configuration for large documents
   chunk_size: 3000   # Smaller chunks for better processing
   overlap: 300       # More overlap to maintain context
+  
+  # Generation targets
   num_pairs: 40      # Generate more pairs
+  num_cot_examples: 10  # Generate more CoT examples
+  
+  # Model parameters
   max_tokens: 4096
+  batch_size: 32
+  
+  # Quality settings  
+  enable_deduplication: true    # Remove similar questions
+  similarity_threshold: 0.8     # How similar is considered duplicate
 
 curate:
   threshold: 8.0     # Higher quality threshold
@@ -199,12 +280,12 @@ format:
 prompts:
   qa_generation: |
     Create {num_pairs} high-quality question-answer pairs about this document.
-
+    
     Focus on questions that:
     1. Test understanding of key concepts
     2. Include important details and examples
     3. Cover main topics comprehensively
-
+    
     Return only the JSON:
     [
       {{
@@ -212,7 +293,7 @@ prompts:
         "answer": "Detailed answer."
       }}
     ]
-
+    
     Text:
     {text}
 ```
@@ -258,7 +339,7 @@ For batch processing, you can use a shell script:
 # Process all PDFs in a directory
 for file in data/pdf/*.pdf; do
   filename=$(basename "$file" .pdf)
-
+  
   # Full pipeline with custom config
   synthetic-data-kit -c custom_config.yaml ingest "$file"
   synthetic-data-kit -c custom_config.yaml create "data/output/${filename}.txt" -n 20
@@ -278,6 +359,48 @@ synthetic-data-kit ingest example_document.pdf -o custom_output/
 # Custom output file for curation
 synthetic-data-kit curate data/generated/example_document_qa_pairs.json -o custom_output/high_quality.json
 ```
+
+## 10. Troubleshooting Common Issues
+
+### Chunking Problems
+
+**Problem**: Getting fewer items than requested
+- **Cause**: Document too small or chunks don't contain enough content
+- **Solution**: Try smaller `--num-pairs` or combine multiple documents
+
+**Problem**: Repetitive or similar questions
+- **Cause**: High chunk overlap causing similar content to be processed multiple times
+- **Solution**: Reduce overlap or increase chunk size
+```bash
+synthetic-data-kit create document.txt --chunk-overlap 50 --chunk-size 5000
+```
+
+**Problem**: Poor quality questions across chunks  
+- **Cause**: Chunks too small, losing important context
+- **Solution**: Increase chunk size to preserve more context
+```bash
+synthetic-data-kit create document.txt --chunk-size 6000
+```
+
+**Problem**: Processing takes too long
+- **Cause**: Document creates too many small chunks
+- **Solution**: Use larger chunks to reduce processing time
+```bash
+synthetic-data-kit create document.txt --chunk-size 8000 --num-pairs 20
+```
+
+**Problem**: Want to understand what's happening
+- **Solution**: Use verbose mode to see chunking details
+```bash
+synthetic-data-kit create document.txt --verbose
+```
+
+### Performance Tips
+
+- **Small documents** (< 8000 chars): Let the tool use single-call processing automatically
+- **Medium documents** (8000-50000 chars): Use default settings (`--chunk-size 4000`)
+- **Large documents** (> 50000 chars): Consider larger chunks (`--chunk-size 6000-8000`)
+- **Very large documents**: Process in smaller batches with fewer `--num-pairs` per run
 
 ## Next Steps
 

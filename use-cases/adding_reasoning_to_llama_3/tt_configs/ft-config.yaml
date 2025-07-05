@@ -6,7 +6,7 @@
 #   tune download meta-llama/Meta-Llama-3.3-70B-Instruct --output-dir /tmp/Meta-Llama-3.3-70B-Instruct --ignore-patterns "original/consolidated*"
 #
 # To launch on 8 devices, run the following command from root:
-#   tune run --nproc_per_node 8 tune run --nproc_per_node 8 full_finetune_distributed --config ft-config.yaml
+#   tune run --nproc_per_node 8 tune run --nproc_per_node 8 full_finetune_distributed --config ft-config.yaml 
 
 output_dir: /tmp/torchtune/llama3_3_70B/full # /tmp may be deleted by your system. Change it to your preference.
 seed: 69
